@@ -1,0 +1,2 @@
+CREATE DATABASE datalake;
+CREATE SCHEMA production;

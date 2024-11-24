@@ -1,0 +1,3 @@
+CREATE DATABASE dwh;
+
+CREATE SCHEMA production;
