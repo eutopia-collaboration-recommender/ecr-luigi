@@ -17,6 +17,7 @@ class OrcidModifiedMembersTask(OrcidTask):
     affiliation name as a parameter. The task saves the modified records to the Postgres table and saves the number of
     rows written to the local target that is used to detect if the task has been executed.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -32,10 +33,7 @@ class OrcidModifiedMembersTask(OrcidTask):
     )
     updated_date_end: str = luigi.OptionalParameter(description='Search end date', default='NOW')
 
-    def run(self):
-        # Fetch the access token
-        access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
-
+    def num_batches(self, access_token) -> int:
         # Fetch the number of modified records
         num_found = search_modified_records(
             access_token=access_token,
@@ -46,7 +44,10 @@ class OrcidModifiedMembersTask(OrcidTask):
         # Fetch the number of total batches
         num_batches = num_found // self.num_rows + 1
 
-        # Iterate over the batches and load the modified records
+        return num_batches
+
+    def fetch_modified_records(self, access_token: str, num_batches: int) -> list:
+        # Fetch the modified records
         modified_records = list()
         for ix in range(num_batches):
             # Enforce the rate limit before each request
@@ -62,7 +63,9 @@ class OrcidModifiedMembersTask(OrcidTask):
 
             # Append the modified records to the list
             modified_records.extend([result['orcid-identifier'] for result in response['result']])
+        return modified_records
 
+    def to_dataframe(self, modified_records: list) -> pd.DataFrame:
         # Convert the modified records to a DataFrame
         df = pd.DataFrame(modified_records)
         df.columns = ['url', 'member_id', 'host']
@@ -70,6 +73,20 @@ class OrcidModifiedMembersTask(OrcidTask):
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         # Add affiliation column
         df['affiliation'] = [self.affiliation_name] * len(df)
+        return df
+
+    def run(self):
+        # Fetch the access token
+        access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
+
+        # Fetch the number of total batches
+        num_batches = self.num_batches(access_token=access_token)
+
+        # Iterate over the batches and load the modified records
+        modified_records = self.fetch_modified_records(access_token=access_token, num_batches=num_batches)
+
+        # Convert the modified records to a DataFrame
+        df = self.to_dataframe(modified_records=modified_records)
 
         # Save the DataFrame to Postgres
         num_rows_written = write_table(conn=self.connection, df=df, table_name=self.target_table_name)
