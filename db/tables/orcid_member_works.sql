@@ -7,4 +7,4 @@ CREATE TABLE orcid_member_works
     row_updated_at     TIMESTAMP
 );
 
-DROP TABLE IF EXISTS orcid_member_works;
+-- DROP TABLE IF EXISTS orcid_member_works;
