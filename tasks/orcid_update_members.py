@@ -3,9 +3,9 @@ import time
 import luigi
 import pandas as pd
 
-from orcid.access_token import get_access_token
-from orcid.member import get_orcid_member_works
-from orcid.orcid_task import OrcidTask
+from util.orcid.access_token import get_access_token
+from util.orcid.member import get_orcid_member_works
+from util.luigi.orcid_task import OrcidTask
 from tasks.orcid_modified_members import OrcidModifiedMembersTask
 from util.common import to_snake_case
 from util.postgres import query, write_table
@@ -25,6 +25,7 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
         self.source_table_name = 'orcid_modified_member'
         self.target_table_name = 'orcid_member_works'
 
+    # Task input parameters
     affiliation_name: str = luigi.Parameter(
         description='Affiliation, organization name, e.g. "University of Ljubljana"'
     )
@@ -101,7 +102,7 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
 
         print(f"Number of rows written to database: {num_rows_written}")
 
-        # Save number of rows written local target: affiliation_name - Modified Members.txt
+        # Save number of rows written local target
         with self.output().open('w') as f:
             result = json.dumps({'num-rows-written': num_rows_written})
             f.write(f"{result}")

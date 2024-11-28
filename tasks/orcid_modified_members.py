@@ -3,9 +3,9 @@ import time
 import luigi
 import pandas as pd
 
-from orcid.access_token import get_access_token
-from orcid.member import search_modified_records
-from orcid.orcid_task import OrcidTask
+from util.orcid.access_token import get_access_token
+from util.orcid.member import search_modified_records
+from util.luigi.orcid_task import OrcidTask
 from util.common import to_snake_case
 from util.postgres import write_table
 
@@ -23,6 +23,7 @@ class OrcidModifiedMembersTask(OrcidTask):
 
         self.target_table_name = 'orcid_modified_member'
 
+    # Task input parameters
     affiliation_name: str = luigi.Parameter(
         description='Affiliation, organization name, e.g. "University of Ljubljana"'
     )
@@ -91,7 +92,7 @@ class OrcidModifiedMembersTask(OrcidTask):
         # Save the DataFrame to Postgres
         num_rows_written = write_table(conn=self.connection, df=df, table_name=self.target_table_name)
 
-        # Save number of rows written local target: affiliation_name - Modified Members.txt
+        # Save number of rows written local target
         with self.output().open('w') as f:
             result = json.dumps({'num-rows-written': num_rows_written})
             f.write(f"{result}")
