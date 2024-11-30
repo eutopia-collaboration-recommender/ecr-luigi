@@ -1,3 +1,5 @@
+SET SEARCH_PATH TO jezero;
+
 CREATE TABLE elsevier_publication
 (
     publication_id                   TEXT,

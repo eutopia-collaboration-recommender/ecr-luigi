@@ -1,3 +1,5 @@
+SET SEARCH_PATH TO jezero;
+
 CREATE TABLE orcid_member_works
 (
     member_id          TEXT,

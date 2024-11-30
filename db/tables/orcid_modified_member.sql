@@ -1,3 +1,5 @@
+SET SEARCH_PATH TO jezero;
+
 CREATE TABLE orcid_modified_member
 (
     url            VARCHAR(64),

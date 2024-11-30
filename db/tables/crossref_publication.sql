@@ -1,3 +1,5 @@
+SET SEARCH_PATH TO jezero;
+
 CREATE TABLE crossref_publication
 (
     publication_doi      TEXT,
