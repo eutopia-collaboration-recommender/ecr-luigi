@@ -2,6 +2,7 @@ import json
 import time
 import luigi
 import pandas as pd
+from pymongo.synchronous.collection import Collection
 
 from util.luigi.elsevier_task import ElsevierTask
 from util.common import to_snake_case
@@ -181,7 +182,8 @@ def to_dataframe(publications: list):
 
 class ElsevierUpdatePublicationsTask(ElsevierTask):
     """
-    Description:
+    Description: Task to update the Elsevier publications in the PostgreSQL database. The task fetches the modified
+    Elsevier publications from MongoDB, processes the publications, and writes the results to the PostgreSQL database.
     """
 
     def __init__(self, *args, **kwargs):
@@ -202,7 +204,7 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
         # default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
 
-    def process_elsevier_publications(self, collection):
+    def process_elsevier_publications(self, collection: Collection) -> list:
         """
         Process the Elsevier publications from the MongoDB collection
         :param collection: MongoDB collection to process
@@ -226,6 +228,8 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
         for ix, document in enumerate(cursor):
             # Extract the document fields
             publications.append(parse_document(document))
+            if ix % self.mongo_batch_size == 0:
+                self.logger.info(f"Processed {ix} records")
 
         # Return the publications
         return publications
@@ -235,6 +239,8 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
         Run the main task. Process Elsevier publications. Write the results to the PostgreSQL database and save the
         number of rows written to a local target file.
         """
+
+        self.logger.info(f"Running {self.__class__.__name__}.")
 
         try:
             # Limit to collection

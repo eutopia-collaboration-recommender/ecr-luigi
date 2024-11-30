@@ -95,6 +95,7 @@ def write_table(conn: psycopg2.extensions.connection,
 
         # Commit the transaction
         conn.commit()
+
     # Return the DataFrame
     return len(df)
 

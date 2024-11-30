@@ -37,11 +37,20 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
     updated_date_end: str = luigi.OptionalParameter(description='Search end date', default='NOW')
 
     def requires(self):
+        """
+        Requires the OrcidModifiedMembersTask for given affiliation name and date range to be processed before
+        this task.
+        :return: OrcidModifiedMembersTask
+        """
         return OrcidModifiedMembersTask(affiliation_name=self.affiliation_name,
                                         updated_date_start=self.updated_date_start,
                                         updated_date_end=self.updated_date_end)
 
     def fetch_modified_records(self) -> list:
+        """
+        Fetch the modified records that will be updated
+        :return: List of modified records
+        """
         # Escape the single quotes in the affiliation name
         affiliation = self.affiliation_name.replace("'", "''")
 
@@ -60,10 +69,16 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
         )
 
         modified_records = modified_records_df['member_id'].tolist()
-        print(f'Modified records found: {len(modified_records)}')
+        self.logger.info(f'Modified records found: {len(modified_records)}')
         return modified_records
 
     def fetch_member_person(self, modified_records: list, access_token: str) -> list:
+        """
+        Fetch the ORCID member person JSON for the given modified records
+        :param modified_records: List of modified records
+        :param access_token: ORCID API access token
+        :return: List of ORCID member works
+        """
         member_person_records = list()
         for ix, member_id in enumerate(modified_records):
             # Enforce the rate limit before each request
@@ -74,11 +89,16 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
             member_person_records.append(record)
 
             if ix % 50 == 0:
-                print(f"Processed {ix} records")
+                self.logger.info(f"Processed {ix} records")
 
         return member_person_records
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
+        """
+        Transform the modified records to a DataFrame
+        :param iterable: List of modified records
+        :return: Pandas DataFrame with the modified records
+        """
         # Convert the list of records to a DataFrame
         df = pd.DataFrame(iterable)
         # Add row creation and last update timestamps. The row created timestamp will only be added, when the row is created.
@@ -87,6 +107,12 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
         return df
 
     def run(self):
+        """
+        Run the main task. Update ORCID person JSON for each modified ORCID record in given timeframe.
+        Write the results to the PostgreSQL database and save the number of rows written to a local target file.
+        """
+        self.logger.info(f"Running {self.__class__.__name__} for affiliation: {self.affiliation_name}.")
+
         # Fetch the access token
         access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
 
@@ -100,6 +126,9 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
         self.on_run_finished(iterable=member_person_records)
 
     def output(self):
+        """
+        Output target for the task used to check if the task has been completed.
+        """
         affiliation = to_snake_case(self.affiliation_name)
         updated_date_start = to_snake_case(self.updated_date_start)
         updated_date_end = to_snake_case(self.updated_date_end)

@@ -1,4 +1,3 @@
-import json
 import time
 import luigi
 import pandas as pd
@@ -7,7 +6,6 @@ from util.orcid.access_token import get_access_token
 from util.orcid.member import search_modified_records
 from util.luigi.orcid_task import OrcidTask
 from util.common import to_snake_case
-from util.postgres import write_table
 
 
 class OrcidModifiedMembersTask(OrcidTask):
@@ -34,7 +32,12 @@ class OrcidModifiedMembersTask(OrcidTask):
     )
     updated_date_end: str = luigi.OptionalParameter(description='Search end date', default='NOW')
 
-    def num_batches(self, access_token) -> int:
+    def num_batches(self, access_token: str) -> int:
+        """
+        Fetch the number of batches for the modified records
+        :param access_token: ORCID API access token
+        :return: Number of batches
+        """
         # Fetch the number of modified records
         num_found = search_modified_records(
             access_token=access_token,
@@ -42,12 +45,20 @@ class OrcidModifiedMembersTask(OrcidTask):
             num_rows=0
         )['num-found']
 
+        self.logger.info(f'Number of modified records found: {num_found}')
+
         # Fetch the number of total batches
         num_batches = num_found // self.num_rows + 1
 
         return num_batches
 
     def fetch_modified_records(self, access_token: str, num_batches: int) -> list:
+        """
+        Fetch the modified records for the given affiliation
+        :param access_token: ORCID API access token
+        :param num_batches: Number of batches to fetch
+        :return: List of modified records
+        """
         # Fetch the modified records
         modified_records = list()
         for ix in range(num_batches):
@@ -64,9 +75,16 @@ class OrcidModifiedMembersTask(OrcidTask):
 
             # Append the modified records to the list
             modified_records.extend([result['orcid-identifier'] for result in response['result']])
+
+            self.logger.info(f"Processed {ix} batches")
         return modified_records
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
+        """
+        Transform the modified records to a DataFrame
+        :param iterable: List of modified records
+        :return: Pandas DataFrame with the modified records
+        """
         # Convert the modified records to a DataFrame
         df = pd.DataFrame(iterable)
         df.columns = ['url', 'member_id', 'host']
@@ -77,6 +95,12 @@ class OrcidModifiedMembersTask(OrcidTask):
         return df
 
     def run(self):
+        """
+        Run the main task. Fetch the modified records for the given affiliation. Write the results to the PostgreSQL
+        database and save the number of rows written to a local target file.
+        :return: None
+        """
+        self.logger.info(f'Fetching modified records for {self.affiliation_name}')
         # Fetch the access token
         access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
 
@@ -90,6 +114,9 @@ class OrcidModifiedMembersTask(OrcidTask):
         self.on_run_finished(iterable=modified_records)
 
     def output(self):
+        """
+        Output target for the task used to check if the task has been completed.
+        """
         affiliation = to_snake_case(self.affiliation_name)
         updated_date_start = to_snake_case(self.updated_date_start)
         updated_date_end = to_snake_case(self.updated_date_end)

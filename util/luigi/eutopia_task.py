@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 
 import luigi
@@ -15,6 +16,9 @@ class EutopiaTask(luigi.Task):
         # Read settings from config file
         # Note: The config file should be stored in the same directory where script is executed
         self.config = Box.from_yaml(filename="config.yaml")
+        self.logger = logging.getLogger()
+
+        self.pg_target_table_name = None
 
         # PostgreSQL connection
         self.pg_connection = create_connection(
@@ -52,3 +56,5 @@ class EutopiaTask(luigi.Task):
         with self.output().open('w') as f:
             result = json.dumps({'num-rows-written': num_rows_written})
             f.write(f"{result}")
+
+        self.logger.info(f"Number of rows written to `{self.pg_target_table_name}`: {num_rows_written}")

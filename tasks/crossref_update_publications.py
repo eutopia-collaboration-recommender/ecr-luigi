@@ -11,33 +11,11 @@ from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
 from util.postgres import query
 
 
-@backoff.on_exception(
-    backoff.expo,
-    (requests.exceptions.RequestException, requests.exceptions.HTTPError),
-    max_tries=8,
-    giveup=lambda e: e.response is not None and e.response.status_code < 500,
-)
-def crossref_request(url: str, params: dict = dict()) -> dict:
-    """
-    Make a request to the given URL with the given parameters
-    :param url: URL to make the request to.
-    :param params: Parameters to include in the request.
-    :return: JSON response from the request.
-    """
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        response_json = response.json()
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP error: {e}")
-        response_json = {}
-
-    return response_json
-
-
 class CrossrefUpdatePublicationsTask(CrossrefTask):
     """
-    Description:
+    Description: A Luigi task to fetch the publication metadata from Crossref for the DOIs in the PostgreSQL database
+    from ORCID member works. By default, the task fetches the publication metadata for the DOIs that have been updated
+    in the last 7 days. The task requires the OrcidUpdateMemberWorksTask to be completed before it can be run.
     """
 
     def __init__(self, *args, **kwargs):
@@ -55,7 +33,34 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
 
+    @backoff.on_exception(
+        backoff.expo,
+        (requests.exceptions.RequestException, requests.exceptions.HTTPError),
+        max_tries=8,
+        giveup=lambda e: e.response is not None and e.response.status_code < 500,
+    )
+    def crossref_request(self, url: str, params: dict = dict()) -> dict:
+        """
+        Make a request to the given URL with the given parameters
+        :param url: URL to make the request to.
+        :param params: Parameters to include in the request.
+        :return: JSON response from the request.
+        """
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            response_json = response.json()
+        except requests.exceptions.HTTPError as e:
+            self.logger.warning(f"HTTP error: {e}")
+            response_json = {}
+
+        return response_json
+
     def requires(self):
+        """
+        The task requires the OrcidUpdateMemberWorksTask to be completed before it can be run.
+        :return: List of all OrcidUpdateMemberWorksTask
+        """
         return [
             OrcidUpdateMemberWorksTask(
                 affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['INSTITUTION_PRETTY_NAME'],
@@ -94,7 +99,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         publications = list()
         # Iterate over the DOIs and fetch the publication metadata
         for ix, doi in enumerate(dois):
-            publication_metadata = crossref_request(url=f'{self.base_url}/{doi}')
+            publication_metadata = self.crossref_request(url=f'{self.base_url}/{doi}')
             record = dict(
                 publication_doi=doi,
                 publication_metadata=json.dumps(publication_metadata)
@@ -104,16 +109,17 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
 
             # Print progress
             if ix % 50 == 0:
-                print(f"Processed {ix} records")
+                self.logger.info(f"Processed {ix} records")
 
         # Return the results
         return publications
 
     def run(self):
         """
-        Run the main task. Process Elsevier publications. Write the results to the PostgreSQL database and save the
+        Run the main task. Fetch Crossref publication metadata. Write the results to the PostgreSQL database and save the
         number of rows written to a local target file.
         """
+        self.logger.info(f"Running {self.__class__.__name__}.")
         dois = self.query_dois()
 
         # Process the DOIs and fetch the publication metadata
