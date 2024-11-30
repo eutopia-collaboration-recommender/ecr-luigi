@@ -70,7 +70,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         Query the DOIs from the PostgreSQL database
         :return: List of DOIs
         """
-        doi_query = f"""
+        query_str = f"""
             SELECT DISTINCT eid ->> 'external-id-value' AS publication_doi
             FROM orcid_member_works mw,
                  LATERAL JSONB_ARRAY_ELEMENTS(mw.member_works) AS w,
@@ -81,7 +81,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         """
         # Fetch the DOIs from the PostgreSQL database
         df = query(conn=self.pg_connection,
-                   query=doi_query)
+                   query=query_str)
         return df['publication_doi'].tolist()
 
     def process_dois(self, dois: list) -> list:

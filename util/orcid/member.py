@@ -87,3 +87,23 @@ def get_orcid_member_works(member_id: str, access_token: str) -> dict:
 
     # Return the record from ORCID
     return record
+
+
+def get_orcid_member_person(member_id: str, access_token: str) -> dict:
+    """
+    Fetch the ORCID record by ORCID ID
+    :param member_id: ORCID identifier
+    :param access_token: ORCID access token
+    :return: ORCID record
+    """
+    # Fetch the ORCID record
+    response = request_orcid(
+        url=f"https://pub.orcid.org/v3.0/{member_id}/person",
+        access_token=access_token,
+    )
+
+    # Define the record
+    record = dict(member_id=member_id, member_person=json.dumps(response.json()))
+
+    # Return the record from ORCID
+    return record
