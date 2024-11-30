@@ -23,7 +23,7 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.source_table_name = 'orcid_modified_member'
-        self.target_table_name = 'orcid_member_works'
+        self.pg_target_table_name = 'orcid_member_works'
 
     # Task input parameters
     affiliation_name: str = luigi.Parameter(
@@ -46,7 +46,7 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
         affiliation = self.affiliation_name.replace("'", "''")
         # Fetch the modified records from Postgres
         modified_records_df = query(
-            conn=self.connection,
+            conn=self.pg_connection,
             query=f"SELECT DISTINCT member_id FROM {self.source_table_name} WHERE affiliation = '{affiliation}'"
         )
 
@@ -69,9 +69,9 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
 
         return member_works_records
 
-    def to_dataframe(self, member_works_records: list) -> pd.DataFrame:
+    def to_dataframe(self, iterable: list) -> pd.DataFrame:
         # Convert the list of records to a DataFrame
-        df = pd.DataFrame(member_works_records)
+        df = pd.DataFrame(iterable)
         # Add row creation and last update timestamps. The row created timestamp will only be added, when the row is created.
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         df['row_updated_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
@@ -91,21 +91,8 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
         # Fetch the member works
         member_works_records = self.fetch_member_works(modified_records=modified_records, access_token=access_token)
 
-        # Convert the records to a DataFrame
-        df = self.to_dataframe(member_works_records)
-
-        # Write the DataFrame to Postgres
-        num_rows_written = write_table(conn=self.connection,
-                                       df=df,
-                                       table_name=self.target_table_name,
-                                       merge_on=['member_id'])
-
-        print(f"Number of rows written to database: {num_rows_written}")
-
-        # Save number of rows written local target
-        with self.output().open('w') as f:
-            result = json.dumps({'num-rows-written': num_rows_written})
-            f.write(f"{result}")
+        # Write the modified records to the PostgreSQL database and save the number of rows written to the local target
+        self.on_run_finished(iterable=member_works_records)
 
     def output(self):
         affiliation = to_snake_case(self.affiliation_name)

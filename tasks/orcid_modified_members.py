@@ -21,7 +21,7 @@ class OrcidModifiedMembersTask(OrcidTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.target_table_name = 'orcid_modified_member'
+        self.pg_target_table_name = 'orcid_modified_member'
 
     # Task input parameters
     affiliation_name: str = luigi.Parameter(
@@ -66,9 +66,9 @@ class OrcidModifiedMembersTask(OrcidTask):
             modified_records.extend([result['orcid-identifier'] for result in response['result']])
         return modified_records
 
-    def to_dataframe(self, modified_records: list) -> pd.DataFrame:
+    def to_dataframe(self, iterable: list) -> pd.DataFrame:
         # Convert the modified records to a DataFrame
-        df = pd.DataFrame(modified_records)
+        df = pd.DataFrame(iterable)
         df.columns = ['url', 'member_id', 'host']
         # Set modify date to the current time
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
@@ -86,16 +86,8 @@ class OrcidModifiedMembersTask(OrcidTask):
         # Iterate over the batches and load the modified records
         modified_records = self.fetch_modified_records(access_token=access_token, num_batches=num_batches)
 
-        # Convert the modified records to a DataFrame
-        df = self.to_dataframe(modified_records=modified_records)
-
-        # Save the DataFrame to Postgres
-        num_rows_written = write_table(conn=self.connection, df=df, table_name=self.target_table_name)
-
-        # Save number of rows written local target
-        with self.output().open('w') as f:
-            result = json.dumps({'num-rows-written': num_rows_written})
-            f.write(f"{result}")
+        # Write the modified records to the PostgreSQL database and save the number of rows written to the local target
+        self.on_run_finished(iterable=modified_records)
 
     def output(self):
         affiliation = to_snake_case(self.affiliation_name)

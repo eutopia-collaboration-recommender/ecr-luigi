@@ -3,6 +3,8 @@ import time
 import luigi
 
 from box import Box
+
+from util.luigi.eutopia_task import EutopiaTask
 from util.postgres import create_connection
 
 # Global lock for rate limiting (shared across all tasks, thread-safe)
@@ -10,29 +12,18 @@ request_lock = threading.Lock()
 request_timestamps = []  # Shared across all tasks
 
 
-class OrcidTask(luigi.Task):
+class OrcidTask(EutopiaTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Read settings from config file
         # Note: The config file should be stored in the same directory where script is executed
-        self.config = Box.from_yaml(filename="config.yaml")
         self.client_id = self.config.ORCID.CLIENT_ID
         self.client_secret = self.config.ORCID.CLIENT_SECRET
         self.num_rows = self.config.ORCID.NUM_ROWS_PER_PAGE
 
         self.REQUEST_LIMIT = 24  # Maximum requests per second
         self.REQUEST_WINDOW = 1  # Time window in seconds
-
-        # PostgreSQL connection
-        self.connection = create_connection(
-            username=self.config.POSTGRES.USERNAME,
-            password=self.config.POSTGRES.PASSWORD,
-            host=self.config.POSTGRES.HOST,
-            port=self.config.POSTGRES.PORT,
-            database=self.config.POSTGRES.DATABASE,
-            schema=self.config.POSTGRES.SCHEMA
-        )
 
     def rate_limit(self):
         """Implements a global rate limiter to respect the request limits."""
