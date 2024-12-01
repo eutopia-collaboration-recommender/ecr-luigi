@@ -5,6 +5,7 @@ import luigi
 from box import Box
 
 from util.luigi.eutopia_task import EutopiaTask
+from util.orcid.access_token import get_access_token
 from util.postgres import create_connection
 
 # Global lock for rate limiting (shared across all tasks, thread-safe)
@@ -22,8 +23,13 @@ class OrcidTask(EutopiaTask):
         self.client_secret = self.config.ORCID.CLIENT_SECRET
         self.num_rows = self.config.ORCID.NUM_ROWS_PER_PAGE
 
-        self.REQUEST_LIMIT = 24  # Maximum requests per second
-        self.REQUEST_WINDOW = 1  # Time window in seconds
+        self.request_limit = 12  # Maximum requests per second (it's actually 24 requests per second, but we are conservative)
+        self.request_window = 1  # Time window in seconds
+
+        self.orcid_access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
+
+        # Number of records to checkpoint
+        self.num_records_to_checkpoint = self.config.CROSSREF.NUM_RECORDS_TO_CHECKPOINT
 
     def rate_limit(self):
         """Implements a global rate limiter to respect the request limits."""
@@ -31,15 +37,15 @@ class OrcidTask(EutopiaTask):
         with request_lock:
             current_time = time.time()
 
-            # Remove timestamps older than the REQUEST_WINDOW
+            # Remove timestamps older than the request_window
             request_timestamps = [
                 t for t in request_timestamps
-                if current_time - t < self.REQUEST_WINDOW
+                if current_time - t < self.request_window
             ]
 
-            if len(request_timestamps) >= self.REQUEST_LIMIT:
+            if len(request_timestamps) >= self.request_limit:
                 # Calculate time to sleep until the next request is allowed
-                sleep_time = self.REQUEST_WINDOW - (current_time - request_timestamps[0])
+                sleep_time = self.request_window - (current_time - request_timestamps[0])
                 time.sleep(sleep_time)
 
             # Record the current request timestamp

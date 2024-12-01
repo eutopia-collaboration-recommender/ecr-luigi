@@ -1,14 +1,12 @@
-import json
 import time
 import luigi
 import pandas as pd
 
-from util.orcid.access_token import get_access_token
 from util.orcid.member import get_orcid_member_person
 from util.luigi.orcid_task import OrcidTask
 from tasks.orcid_modified_members import OrcidModifiedMembersTask
 from util.common import to_snake_case
-from util.postgres import query, write_table
+from util.postgres import query
 
 
 class OrcidUpdateMemberPersonTask(OrcidTask):
@@ -46,7 +44,7 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
                                         updated_date_start=self.updated_date_start,
                                         updated_date_end=self.updated_date_end)
 
-    def fetch_modified_records(self) -> list:
+    def query_records_to_update(self) -> list:
         """
         Fetch the modified records that will be updated
         :return: List of modified records
@@ -72,26 +70,21 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
         self.logger.info(f'Modified records found: {len(modified_records)}')
         return modified_records
 
-    def fetch_member_person(self, modified_records: list, access_token: str) -> list:
+    def process_item(self, item: str):
         """
-        Fetch the ORCID member person JSON for the given modified records
-        :param modified_records: List of modified records
-        :param access_token: ORCID API access token
-        :return: List of ORCID member works
+        Process the modified records
+        :param item: Modified record
+        :return: Processed record
         """
-        member_person_records = list()
-        for ix, member_id in enumerate(modified_records):
-            # Enforce the rate limit before each request
-            self.rate_limit()
-            # Fetch the ORCID record
-            record = get_orcid_member_person(member_id=member_id, access_token=access_token)
-            # Append the record to the list
-            member_person_records.append(record)
+        ix = item
+        # Enforce the rate limit before each request
+        self.rate_limit()
 
-            if ix % 50 == 0:
-                self.logger.info(f"Processed {ix} records")
+        # Fetch the ORCID record
+        record = get_orcid_member_person(member_id=ix, access_token=self.orcid_access_token)
 
-        return member_person_records
+        # Return the record
+        return record
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
         """
@@ -105,25 +98,6 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         df['row_updated_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         return df
-
-    def run(self):
-        """
-        Run the main task. Update ORCID person JSON for each modified ORCID record in given timeframe.
-        Write the results to the PostgreSQL database and save the number of rows written to a local target file.
-        """
-        self.logger.info(f"Running {self.__class__.__name__} for affiliation: {self.affiliation_name}.")
-
-        # Fetch the access token
-        access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
-
-        # Fetch the modified records that will be updated
-        modified_records = self.fetch_modified_records()
-
-        # Fetch the member works
-        member_person_records = self.fetch_member_person(modified_records=modified_records, access_token=access_token)
-
-        # Write the modified records to the PostgreSQL database and save the number of rows written to the local target
-        self.on_run_finished(iterable=member_person_records)
 
     def output(self):
         """

@@ -18,3 +18,5 @@ class CrossrefTask(EutopiaTask):
 
         self.mailto = self.config.CROSSREF.MAILTO
         self.base_url = 'https://api.crossref.org/works'
+        # Number of records to checkpoint
+        self.num_records_to_checkpoint = self.config.CROSSREF.NUM_RECORDS_TO_CHECKPOINT

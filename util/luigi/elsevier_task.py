@@ -22,3 +22,9 @@ class ElsevierTask(EutopiaTask):
         self.mongo_db = self.mongo_client[self.config.MONGODB.DATABASE]
         # Set window size for batch processing
         self.mongo_batch_size = self.config.MONGODB.BATCH_SIZE
+        # Number of records to checkpoint
+        self.num_records_to_checkpoint = self.config.CROSSREF.NUM_RECORDS_TO_CHECKPOINT
+
+    def close_connection(self):
+        self.mongo_client.close()
+        self.pg_connection.close()

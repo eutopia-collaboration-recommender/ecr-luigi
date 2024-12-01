@@ -1,10 +1,9 @@
 import json
 import time
-import backoff
 import luigi
-import requests
 
 from tasks.orcid_update_member_works import OrcidUpdateMemberWorksTask
+from util.crossref.works import crossref_request
 from util.luigi.crossref_task import CrossrefTask
 from util.common import to_snake_case
 from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
@@ -33,29 +32,6 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
 
-    @backoff.on_exception(
-        backoff.expo,
-        (requests.exceptions.RequestException, requests.exceptions.HTTPError),
-        max_tries=8,
-        giveup=lambda e: e.response is not None and e.response.status_code < 500,
-    )
-    def crossref_request(self, url: str, params: dict = dict()) -> dict:
-        """
-        Make a request to the given URL with the given parameters
-        :param url: URL to make the request to.
-        :param params: Parameters to include in the request.
-        :return: JSON response from the request.
-        """
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()  # Raise an exception for HTTP errors
-            response_json = response.json()
-        except requests.exceptions.HTTPError as e:
-            self.logger.warning(f"HTTP error: {e}")
-            response_json = {}
-
-        return response_json
-
     def requires(self):
         """
         The task requires the OrcidUpdateMemberWorksTask to be completed before it can be run.
@@ -70,7 +46,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
             for institution_id in EUTOPIA_INSTITUTION_REGISTRY.keys()
         ]
 
-    def query_dois(self) -> list:
+    def query_records_to_update(self) -> list:
         """
         Query the DOIs from the PostgreSQL database
         :return: List of DOIs
@@ -89,44 +65,23 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
                    query=query_str)
         return df['publication_doi'].tolist()
 
-    def process_dois(self, dois: list) -> list:
+    def process_item(self, item: str) -> dict:
         """
-        Process the DOIs and fetch the publication metadata
-        :param dois: List of DOIs
-        :return: List of publication metadata
+        Process a single item
+        :param item: DOI for Crossref article
+        :return: Record with publication metadata
         """
-        # Initialize the results list
-        publications = list()
-        # Iterate over the DOIs and fetch the publication metadata
-        for ix, doi in enumerate(dois):
-            publication_metadata = self.crossref_request(url=f'{self.base_url}/{doi}')
-            record = dict(
-                publication_doi=doi,
-                publication_metadata=json.dumps(publication_metadata)
-            )
+        doi = item
+        # Fetch the publication metadata
+        publication_metadata = crossref_request(url=f'{self.base_url}/{doi}')
+        # Define the record JSON
+        record = dict(
+            publication_doi=doi,
+            publication_metadata=json.dumps(publication_metadata)
+        )
 
-            publications.append(record)
-
-            # Print progress
-            if ix % 50 == 0:
-                self.logger.info(f"Processed {ix} records")
-
-        # Return the results
-        return publications
-
-    def run(self):
-        """
-        Run the main task. Fetch Crossref publication metadata. Write the results to the PostgreSQL database and save the
-        number of rows written to a local target file.
-        """
-        self.logger.info(f"Running {self.__class__.__name__}.")
-        dois = self.query_dois()
-
-        # Process the DOIs and fetch the publication metadata
-        publications = self.process_dois(dois)
-
-        # Write the modified records to the PostgreSQL database and save the number of rows written to the local target
-        self.on_run_finished(iterable=publications)
+        # Return the record
+        return record
 
     def output(self):
         """
