@@ -83,6 +83,11 @@ class OrcidModifiedMembersTask(OrcidTask):
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         # Add affiliation column
         df['affiliation'] = [self.affiliation_name] * len(df)
+
+        # Add the task parameters to the DataFrame
+        df['task_params_spec'] = self.params_spec
+
+        # Return the DataFrame
         return df
 
     def output(self):

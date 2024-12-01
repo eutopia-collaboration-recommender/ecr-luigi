@@ -58,6 +58,9 @@ class EutopiaTask(luigi.Task):
         self.num_records_to_log = 50
         self.num_records_to_checkpoint = 100
         self.num_records_to_break_in_dev = 500
+        # Specification for delete insert procedure in the target table (if needed)
+        self.delete_insert = False
+        self.params_spec = None
 
     def checkpoint(self, iterable: list):
         # Check if there are any records to write
@@ -124,7 +127,13 @@ class EutopiaTask(luigi.Task):
         # Return the results
         return results
 
-    def to_dataframe(self, iterable: list):
+    def delete_processed_records(self) -> None:
+        self.params_spec = ','.join([f'{key}:{str(value)}' for key, value in self.param_kwargs.items()])
+        if self.delete_insert:
+            query_str = f"DELETE FROM {self.pg_target_table_name} WHERE task_params_spec = '{self.params_spec}'"
+            self.pg_connection.execute(query_str)
+
+    def to_dataframe(self, iterable: list) -> pd.DataFrame:
         """
         Transform the modified records to a DataFrame
         :param iterable: List of modified records
@@ -133,6 +142,7 @@ class EutopiaTask(luigi.Task):
         # Create a DataFrame from the modified records
         df = pd.DataFrame(iterable)
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
+        df['task_params_spec'] = self.params_spec
 
         # Return the DataFrame
         return df
@@ -144,6 +154,9 @@ class EutopiaTask(luigi.Task):
         """
 
         self.logger.info(f"Running {self.__class__.__name__}.")
+
+        # Delete processed records (if needed)
+        self.delete_processed_records()
 
         # Fetch records to process
         iterable = self.query_records_to_update()

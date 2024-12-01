@@ -97,6 +97,11 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
         # Add row creation and last update timestamps. The row created timestamp will only be added, when the row is created.
         df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
         df['row_updated_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
+
+        # Add the task parameters to the DataFrame
+        df['task_params_spec'] = self.params_spec
+
+        # Return the DataFrame
         return df
 
     def output(self):

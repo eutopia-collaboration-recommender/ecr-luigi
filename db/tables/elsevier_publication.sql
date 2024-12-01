@@ -14,7 +14,8 @@ CREATE TABLE elsevier_publication
     publication_authors              JSONB,
     publication_keywords             JSONB,
     publication_references           JSONB,
-    row_created_at                   TIMESTAMP
+    row_created_at                   TIMESTAMP,
+    task_params_spec     TEXT
 );
 
 -- DROP TABLE IF EXISTS elsevier_publication;

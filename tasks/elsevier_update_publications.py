@@ -104,6 +104,9 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
         # Transform field `publication_dt` and `publication_last_modification_dt` to date
         df['publication_dt'] = pd.to_datetime(df['publication_dt'])
         df['publication_last_modification_dt'] = pd.to_datetime(df['publication_last_modification_dt'])
+
+        # Add the task parameters to the DataFrame
+        df['task_params_spec'] = self.params_spec
         # Return the DataFrame
         return df
 

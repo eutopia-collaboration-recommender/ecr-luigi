@@ -93,6 +93,11 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
         df['member_works_count'] = df['member_works'].apply(lambda x: len(x))
         # Convert the member_works column to a JSON string
         df['member_works'] = df['member_works'].apply(lambda x: json.dumps(x))
+
+        # Add the task parameters to the DataFrame
+        df['task_params_spec'] = self.params_spec
+
+        # Return the DataFrame
         return df
 
     def output(self):
