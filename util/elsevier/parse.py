@@ -18,6 +18,8 @@ def safe_get(record: dict, path: str, verbose: bool = False, default=None):
             return record
         if key in record:
             record = record[key]
+        else:
+            return default
 
     return record
 

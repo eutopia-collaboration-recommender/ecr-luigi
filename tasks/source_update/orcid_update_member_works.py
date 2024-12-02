@@ -5,9 +5,9 @@ import pandas as pd
 
 from util.orcid.member import get_orcid_member_works
 from util.luigi.orcid_task import OrcidTask
-from tasks.orcid_modified_members import OrcidModifiedMembersTask
+from tasks.source_update.orcid_modified_members import OrcidModifiedMembersTask
 from util.common import to_snake_case
-from util.postgres import query, write_table
+from util.postgres import query
 
 
 class OrcidUpdateMemberWorksTask(OrcidTask):
