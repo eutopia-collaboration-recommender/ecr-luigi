@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: lojze
+    description: "Data lake containing processed data from API sources."
+    database: lojze
+    schema: jezero
+    tables:
+      - name: orcid_member_works
+        description: "ORCID member works section containing publication data."
+      - name: orcid_modified_member
+        description: "ORCID members by modification date."
