@@ -128,3 +128,27 @@ def parse_affiliations(record: dict) -> list:
     :param record: Record to extract the affiliations from
     :return: List of affiliations with their ID, name, city, and country
     """
+
+    # Check if the record is empty and it has affiliation data
+    affiliations = safe_get(record, 'affiliation')
+    if record is None or affiliations is None:
+        return []
+
+    # In some cases there is only one affiliation and it is stored as a dictionary, convert to a list
+    if type(affiliations) is dict:
+        affiliations = [affiliations]
+
+    # Extract the affiliations from the record
+    results = []
+    for affiliation in affiliations:
+        # Parse the affiliation data
+        affiliation_data = {
+            'affiliation_name': safe_get(affiliation, 'affilname'),
+            'affiliation_city': safe_get(affiliation, 'affiliation-city'),
+            'affiliation_country': safe_get(affiliation, 'affiliation-country')
+        }
+        # Append the affiliation to the list
+        results.append(affiliation_data)
+
+    # Return the affiliations
+    return results

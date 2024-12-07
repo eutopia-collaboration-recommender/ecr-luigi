@@ -20,7 +20,6 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
         super().__init__(*args, **kwargs)
         self.pg_target_table_name = 'elsevier_publication_affiliation'
         self.mongo_collection_name = 'pub_aff'
-        self.delete_insert = False
 
     def query_records_to_update(self) -> list:
         """
@@ -63,19 +62,6 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
 
         # Return the affiliated publications
         return affiliated_publications
-
-    def to_dataframe(self, iterable: list) -> pd.DataFrame:
-        """
-        Transform the modified records to a DataFrame
-        :param iterable: List of modified records
-        :return: Pandas DataFrame with the modified records
-        """
-        # Create a DataFrame from the modified records
-        df = pd.DataFrame(iterable)
-        df['row_created_at'] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
-
-        # Return the DataFrame
-        return df
 
     def output(self):
         """
