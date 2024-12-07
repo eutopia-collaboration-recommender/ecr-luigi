@@ -21,7 +21,7 @@ SELECT LOWER(publication_doi)                                                   
         COALESCE(author_json ->> 'given' || ' ', ''),
         COALESCE(author_json ->> 'family', '')
        )                                                                                     AS author_full_name
--- Author ORCID
+     -- Author ORCID
      , (REGEXP_MATCHES(author_json ->> 'ORCID', '([0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})'))[1] AS author_orcid
      , COALESCE(CAST(author_json ->> 'authenticated-orcid' AS BOOLEAN),
                 FALSE)                                                                       AS is_author_orcid_authenticated
