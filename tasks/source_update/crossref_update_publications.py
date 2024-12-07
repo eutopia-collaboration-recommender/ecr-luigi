@@ -39,7 +39,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         """
         return [
             OrcidUpdateMemberWorksTask(
-                affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['INSTITUTION_PRETTY_NAME'],
+                affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['institution_pretty_name'],
                 updated_date_start=self.updated_date_start,
                 updated_date_end=self.updated_date_end
             )

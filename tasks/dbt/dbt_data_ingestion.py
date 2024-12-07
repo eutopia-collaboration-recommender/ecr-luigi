@@ -51,7 +51,7 @@ class DbtDataIngestionTask(EutopiaTask):
         # Update ORCID member metadata for all EUTOPIA institutions
         tasks.extend(
             [OrcidUpdateMemberPersonTask(
-                affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['INSTITUTION_PRETTY_NAME'],
+                affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['institution_pretty_name'],
                 updated_date_start=self.updated_date_start,
                 updated_date_end=self.updated_date_end)
                 for institution_id in EUTOPIA_INSTITUTION_REGISTRY.keys()]

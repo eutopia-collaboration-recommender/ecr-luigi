@@ -48,8 +48,10 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
 
         # Initialize the affiliatied_publications
         affiliated_publications = []
+        # Iterate over the records and extract the affiliation metadata
         for record_id in document.get('records', []):
             record = safe_get(document, f'records.{record_id}')
+            # Extract the publication metadata
             affiliated_publications.append({
                 'publication_id': document.get('dc:identifier', None),
                 'publication_eid': safe_get(record, 'eid'),

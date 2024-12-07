@@ -1,112 +1,82 @@
 EUTOPIA_INSTITUTION_REGISTRY = {
     # 'UBBCLUJ': {
-    #     'INSTITUTION_SID': 'UBBCLUJ',
-    #     'INSTITUTION_NAME': 'Babes-Bolyai University',
-    #     'INSTITUTION_PRETTY_NAME': 'Babeș-Bolyai University',
-    #     'INSTITUTION_COUNTRY': 'Romania',
-    #     'INSTITUTION_LANGUAGE': 'Romanian',
-    #     'INSTITUTION_COUNTRY_ISO2': 'RO',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%bolyai%'",
-    #     '_PYTHON_STRING_CONDITION': lambda lower_str: 'bolyai' in lower_str
+    #     'institution_id': 'UBBCLUJ',
+    #     'institution_name': 'Babes-Bolyai University',
+    #     'institution_pretty_name': 'Babeș-Bolyai University',
+    #     'institution_country': 'Romania',
+    #     'institution_language': 'Romanian',
+    #     'institution_country_iso2': 'RO'
     # },
     # 'VUB': {
-    #     'INSTITUTION_SID': 'VUB',
-    #     'INSTITUTION_NAME': 'Vrije Universiteit Brussel',
-    #     'INSTITUTION_PRETTY_NAME': 'Vrije Universiteit Brussel',
-    #     'INSTITUTION_COUNTRY': 'Belgium',
-    #     'INSTITUTION_LANGUAGE': 'Dutch, French',
-    #     'INSTITUTION_COUNTRY_ISO2': 'BE',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%vrije%'",
-    #     '_PYTHON_STRING_CONDITION': lambda lower_str: 'vrije' in lower_str
-    #
+    #     'institution_id': 'VUB',
+    #     'institution_name': 'Vrije Universiteit Brussel',
+    #     'institution_pretty_name': 'Vrije Universiteit Brussel',
+    #     'institution_country': 'Belgium',
+    #     'institution_language': 'Dutch, French',
+    #     'institution_country_iso2': 'BE'
     # },
     'UNIVE': {
-        'INSTITUTION_SID': 'UNIVE',
-        'INSTITUTION_NAME': 'Ca Foscari University of Venice',
-        'INSTITUTION_PRETTY_NAME': 'Ca\' Foscari University of Venice',
-        'INSTITUTION_COUNTRY': 'Italy',
-        'INSTITUTION_LANGUAGE': 'Italian',
-        'INSTITUTION_COUNTRY_ISO2': 'IT',
-        '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%ca__foscari%'",
-        '_PYTHON_STRING_CONDITION': lambda lower_str: 'ca\' foscari' in lower_str
-
+        'institution_id': 'UNIVE',
+        'institution_name': 'Ca Foscari University of Venice',
+        'institution_pretty_name': 'Ca\' Foscari University of Venice',
+        'institution_country': 'Italy',
+        'institution_language': 'Italian',
+        'institution_country_iso2': 'IT'
     },
     # 'CY': {
-    #     'INSTITUTION_SID': 'CY',
-    #     'INSTITUTION_NAME': 'CY Cergy Paris Universite',
-    #     'INSTITUTION_PRETTY_NAME': 'CY Cergy Paris Université',
-    #     'INSTITUTION_COUNTRY': 'France',
-    #     'INSTITUTION_LANGUAGE': 'French',
-    #     'INSTITUTION_COUNTRY_ISO2': 'FR',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%cergy%'",
-    #     '_PYTHON_STRING_CONDITION': lambda str: 'cergy' in str
-    #
+    #     'institution_id': 'CY',
+    #     'institution_name': 'CY Cergy Paris Universite',
+    #     'institution_pretty_name': 'CY Cergy Paris Université',
+    #     'institution_country': 'France',
+    #     'institution_language': 'French',
+    #     'institution_country_iso2': 'FR'
     # },
     # 'TU_DRESDEN': {
-    #     'INSTITUTION_SID': 'TU_DRESDEN',
-    #     'INSTITUTION_NAME': 'Technische Universitat Dresden',
-    #     'INSTITUTION_PRETTY_NAME': 'Technische Universität Dresden',
-    #     'INSTITUTION_COUNTRY': 'Germany',
-    #     'INSTITUTION_LANGUAGE': 'German',
-    #     'INSTITUTION_COUNTRY_ISO2': 'DE',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%dresden%'",
-    #     '_PYTHON_STRING_CONDITION': lambda str: 'dresden' in str
-    #
+    #     'institution_id': 'TU_DRESDEN',
+    #     'institution_name': 'Technische Universitat Dresden',
+    #     'institution_pretty_name': 'Technische Universität Dresden',
+    #     'institution_country': 'Germany',
+    #     'institution_language': 'German',
+    #     'institution_country_iso2': 'DE'
     # },
     # 'GU': {
-    #     'INSTITUTION_SID': 'GU',
-    #     'INSTITUTION_NAME': 'University of Gothenburg',
-    #     'INSTITUTION_PRETTY_NAME': 'University of Gothenburg',
-    #     'INSTITUTION_COUNTRY': 'Sweden',
-    #     'INSTITUTION_LANGUAGE': 'Swedish',
-    #     'INSTITUTION_COUNTRY_ISO2': 'SE',
-    #     '_SQL_STRING_CONDITION': lambda
-    #         col_name: f"LOWER({col_name}) LIKE '%universit%gothenburg%' OR LOWER({col_name}) LIKE '%gothenburg%universit%'",
-    #     '_PYTHON_STRING_CONDITION': lambda lower_str: 'univer' in lower_str and 'gothenburg' in lower_str
+    #     'institution_id': 'GU',
+    #     'institution_name': 'University of Gothenburg',
+    #     'institution_pretty_name': 'University of Gothenburg',
+    #     'institution_country': 'Sweden',
+    #     'institution_language': 'Swedish',
+    #     'institution_country_iso2': 'SE'
     # },
     'UNI_LJ': {
-        'INSTITUTION_SID': 'UNI_LJ',
-        'INSTITUTION_NAME': 'University of Ljubljana',
-        'INSTITUTION_PRETTY_NAME': 'University of Ljubljana',
-        'INSTITUTION_COUNTRY': 'Slovenia',
-        'INSTITUTION_LANGUAGE': 'Slovene',
-        'INSTITUTION_COUNTRY_ISO2': 'SI',
-        '_SQL_STRING_CONDITION': lambda
-            col_name: f"LOWER({col_name}) LIKE '%ljubljan%univer%' OR LOWER({col_name}) LIKE '%univer%ljubljan%'",
-        '_PYTHON_STRING_CONDITION': lambda lower_str: 'univer' in lower_str and 'ljubljan' in lower_str
-
+        'institution_id': 'UNI_LJ',
+        'institution_name': 'University of Ljubljana',
+        'institution_pretty_name': 'University of Ljubljana',
+        'institution_country': 'Slovenia',
+        'institution_language': 'Slovene',
+        'institution_country_iso2': 'SI'
     },
     # 'UNL': {
-    #     'INSTITUTION_SID': 'UNL',
-    #     'INSTITUTION_NAME': 'NOVA University Lisbon',
-    #     'INSTITUTION_PRETTY_NAME': 'NOVA University Lisbon',
-    #     'INSTITUTION_COUNTRY': 'Portugal',
-    #     'INSTITUTION_LANGUAGE': 'Portuguese',
-    #     'INSTITUTION_COUNTRY_ISO2': 'PT',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%nova%lisbo%'",
-    #     '_PYTHON_STRING_CONDITION': lambda lower_str: 'nova' in lower_str and 'lisbo' in lower_str
-    #
+    #     'institution_id': 'UNL',
+    #     'institution_name': 'NOVA University Lisbon',
+    #     'institution_pretty_name': 'NOVA University Lisbon',
+    #     'institution_country': 'Portugal',
+    #     'institution_language': 'Portuguese',
+    #     'institution_country_iso2': 'PT'
     # },
     # 'UPF': {
-    #     'INSTITUTION_SID': 'UPF',
-    #     'INSTITUTION_NAME': 'Pompeu Fabra University-Barcelona',
-    #     'INSTITUTION_PRETTY_NAME': 'Pompeu Fabra University-Barcelona',
-    #     'INSTITUTION_COUNTRY': 'Spain',
-    #     'INSTITUTION_LANGUAGE': 'Spanish, Catalan',
-    #     'INSTITUTION_COUNTRY_ISO2': 'ES',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%pompeu fabra%'",
-    #     '_PYTHON_STRING_CONDITION': lambda lower_str: 'pompeu fabra' in lower_str
-    #
+    #     'institution_id': 'UPF',
+    #     'institution_name': 'Pompeu Fabra University-Barcelona',
+    #     'institution_pretty_name': 'Pompeu Fabra University-Barcelona',
+    #     'institution_country': 'Spain',
+    #     'institution_language': 'Spanish, Catalan',
+    #     'institution_country_iso2': 'ES'
     # },
     # 'WARWICK': {
-    #     'INSTITUTION_SID': 'WARWICK',
-    #     'INSTITUTION_NAME': 'University of Warwick',
-    #     'INSTITUTION_PRETTY_NAME': 'University of Warwick',
-    #     'INSTITUTION_COUNTRY': 'United Kingdom',
-    #     'INSTITUTION_LANGUAGE': 'English',
-    #     'INSTITUTION_COUNTRY_ISO2': 'GB',
-    #     '_SQL_STRING_CONDITION': lambda col_name: f"LOWER({col_name}) LIKE '%warwick%'",
-    #     '_PYTHON_STRING_CONDITION': lambda lower_str: 'warwick' in lower_str
-    #
+    #     'institution_id': 'WARWICK',
+    #     'institution_name': 'University of Warwick',
+    #     'institution_pretty_name': 'University of Warwick',
+    #     'institution_country': 'United Kingdom',
+    #     'institution_language': 'English',
+    #     'institution_country_iso2': 'GB'
     # }
 }
