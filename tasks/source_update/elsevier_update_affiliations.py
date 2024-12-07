@@ -4,9 +4,7 @@ import luigi
 import pandas as pd
 
 from util.elsevier.parse import (
-    parse_authors,
-    parse_keywords,
-    parse_references,
+    parse_affiliations,
     safe_get
 )
 from util.luigi.elsevier_task import ElsevierTask
@@ -20,8 +18,9 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pg_target_table_name = 'elsevier_affiliations'
+        self.pg_target_table_name = 'elsevier_publication_affiliation'
         self.mongo_collection_name = 'pub_aff'
+        self.delete_insert = False
 
     def query_records_to_update(self) -> list:
         """
@@ -37,36 +36,31 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
         cursor = collection.find().batch_size(self.mongo_batch_size)  # Set batch size for the cursor
         return cursor
 
-    def process_item(self, item: dict) -> dict:
+    def process_item(self, item: dict) -> list:
         """
         Parse the document fields from the MongoDB document
         :param item: MongoDB document to extract the fields from
         :return: Dictionary with the publication fields
         """
         document = item
-        # Extract the publication fields
-        record = document.get('record', None)
-        result = {
-            # Publication metadata
-            'publication_id': document.get('scopus_id', None),
-            'publication_eid': safe_get(record, 'coredata.eid'),
-            'publication_doi': safe_get(record, 'coredata.prism:doi'),
-            'publication_title': safe_get(record, 'coredata.dc:title'),
-            'publication_type': safe_get(record, 'coredata.prism:aggregationType'),
-            'publication_abstract': safe_get(record, 'coredata.dc:description'),
-            'publication_citation_count': safe_get(record, 'coredata.citedby-count'),
-            'publication_dt': safe_get(record, 'coredata.prism:coverDate'),
-            'publication_last_modification_dt': document.get('last_modified', None),
-            # Authors
-            'publication_authors': json.dumps(parse_authors(record)),
-            # Keywords
-            'publication_keywords': json.dumps(parse_keywords(record)),
-            # References
-            'publication_references': json.dumps(parse_references(record))
-        }
 
-        # Return the publication
-        return result
+        affiliation_id = document.get('af_id')
+
+        # Initialize the affiliatied_publications
+        affiliated_publications = []
+        for record_id in document.get('records', []):
+            record = safe_get(document, f'records.{record_id}')
+            affiliated_publications.append({
+                'publication_id': document.get('dc:identifier', None),
+                'publication_eid': safe_get(record, 'eid'),
+                'publication_doi': safe_get(record, 'prism:doi'),
+                # Affiliation metadata
+                'publication_affiliation_id': affiliation_id,
+                'publication_affiliations': json.dumps(parse_affiliations(record=record))
+            })
+
+        # Return the affiliated publications
+        return affiliated_publications
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
         """

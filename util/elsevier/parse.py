@@ -24,7 +24,7 @@ def safe_get(record: dict, path: str, verbose: bool = False, default=None):
     return record
 
 
-def parse_authors(record: dict):
+def parse_authors(record: dict) -> list:
     """
     Parse the authors from the record
     :param record: Record to extract the authors from
@@ -69,7 +69,7 @@ def parse_authors(record: dict):
     return results
 
 
-def parse_keywords(record):
+def parse_keywords(record: dict) -> list:
     """
     Parse the keywords from the record
     :param record: Record to extract the keywords from
@@ -90,7 +90,7 @@ def parse_keywords(record):
     return results
 
 
-def parse_references(record):
+def parse_references(record: dict) -> list:
     """
     Parse the references from the record
     :param record: Record to extract the references from
@@ -120,3 +120,11 @@ def parse_references(record):
 
     # Return the references
     return results
+
+
+def parse_affiliations(record: dict) -> list:
+    """
+    Parse the affiliations from the record
+    :param record: Record to extract the affiliations from
+    :return: List of affiliations with their ID, name, city, and country
+    """
