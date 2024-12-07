@@ -5,10 +5,10 @@ import luigi
 from click.testing import CliRunner
 from dbt.cli.main import run
 
-from tasks.source_update.crossref_top_n_research_area_publications import CrossrefTopNResearchAreaPublicationsTask
-from tasks.source_update.crossref_update_publications import CrossrefUpdatePublicationsTask
-from tasks.source_update.elsevier_update_publications import ElsevierUpdatePublicationsTask
-from tasks.source_update.orcid_update_member_person import OrcidUpdateMemberPersonTask
+from tasks.ingestion.crossref_top_n_research_area_publications import CrossrefTopNResearchAreaPublicationsTask
+from tasks.ingestion.crossref_update_publications import CrossrefUpdatePublicationsTask
+from tasks.ingestion.elsevier_update_publications import ElsevierUpdatePublicationsTask
+from tasks.ingestion.orcid_update_member_person import OrcidUpdateMemberPersonTask
 from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case

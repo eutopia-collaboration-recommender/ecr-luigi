@@ -1,6 +1,6 @@
 import luigi
 
-from tasks.source_update.cerif_research_areas import CerifResearchAreasTask
+from tasks.ingestion.cerif_research_areas import CerifResearchAreasTask
 
 from util.crossref.works import query_top_n_by_keyword
 from util.luigi.crossref_task import CrossrefTask
@@ -16,7 +16,7 @@ class CrossrefTopNResearchAreaPublicationsTask(CrossrefTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pg_target_table_name = 'crossref_top_n_research_area_publications'
+        self.pg_target_table_name = 'crossref_top_n_research_area_publication'
         self.num_top_research_area_publications = self.config.CROSSREF.NUM_TOP_RESEARCH_AREA_PUBLICATIONS
 
     def requires(self):

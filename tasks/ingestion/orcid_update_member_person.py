@@ -4,7 +4,7 @@ import pandas as pd
 
 from util.orcid.member import get_orcid_member_person
 from util.luigi.orcid_task import OrcidTask
-from tasks.source_update.orcid_modified_members import OrcidModifiedMembersTask
+from tasks.ingestion.orcid_modified_members import OrcidModifiedMembersTask
 from util.common import to_snake_case
 from util.postgres import query
 
