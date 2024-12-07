@@ -1,12 +1,8 @@
 import threading
 import time
-import luigi
-
-from box import Box
 
 from util.luigi.eutopia_task import EutopiaTask
 from util.orcid.access_token import get_access_token
-from util.postgres import create_connection
 
 # Global lock for rate limiting (shared across all tasks, thread-safe)
 request_lock = threading.Lock()
@@ -22,14 +18,14 @@ class OrcidTask(EutopiaTask):
         self.client_id = self.config.ORCID.CLIENT_ID
         self.client_secret = self.config.ORCID.CLIENT_SECRET
         self.num_rows = self.config.ORCID.NUM_ROWS_PER_PAGE
-
+        # Rate limiting settings
         self.request_limit = 12  # Maximum requests per second (it's actually 24 requests per second, but we are conservative)
         self.request_window = 1  # Time window in seconds
-
+        # Get the ORCID access token
         self.orcid_access_token = get_access_token(client_id=self.client_id, client_secret=self.client_secret)
-
         # Number of records to checkpoint
         self.num_records_to_checkpoint = self.config.CROSSREF.NUM_RECORDS_TO_CHECKPOINT
+
 
     def rate_limit(self):
         """Implements a global rate limiter to respect the request limits."""

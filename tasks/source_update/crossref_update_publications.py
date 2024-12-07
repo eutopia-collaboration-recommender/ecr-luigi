@@ -73,7 +73,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
         """
         doi = item
         # Fetch the publication metadata
-        publication_metadata = crossref_request(url=f'{self.base_url}/{doi}')
+        publication_metadata = crossref_request(url=f'{self.base_url}/{doi}', params=self.params)
         # Define the record JSON
         record = dict(
             publication_doi=doi,

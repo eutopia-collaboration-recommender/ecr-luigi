@@ -7,7 +7,7 @@ import luigi
 import pandas as pd
 
 from box import Box
-from util.postgres import create_connection, write_table
+from util.postgres import create_connection, use_schema, write_table
 
 
 class EutopiaTask(luigi.Task):
@@ -39,7 +39,7 @@ class EutopiaTask(luigi.Task):
         # Read environment
         self.environment = self.config.ENVIRONMENT
 
-        # Set Postgres target table variable to None by defaulr
+        # Set Postgres target table variable to None by default
         self.pg_target_table_name = None
 
         # PostgreSQL connection
@@ -52,6 +52,9 @@ class EutopiaTask(luigi.Task):
             schema=self.config.POSTGRES.SCHEMA
         )
 
+        self.pg_source_schema = self.config.POSTGRES.SCHEMA
+        self.pg_target_schema = self.config.POSTGRES.SCHEMA
+
         # Variable to save the number of written rows
         self.num_rows_written = 0
         # Specifications for logging, checkpointing and breaking in development
@@ -59,8 +62,8 @@ class EutopiaTask(luigi.Task):
         self.num_records_to_checkpoint = 100
         self.num_records_to_break_in_dev = 500
         # Specification for delete insert procedure in the target table (if needed)
-        self.delete_insert = False
-        self.params_spec = None
+        self.delete_insert = True
+        self.params_spec = "n/a"
 
     def checkpoint(self, iterable: list):
         # Check if there are any records to write
@@ -128,10 +131,20 @@ class EutopiaTask(luigi.Task):
         return results
 
     def delete_processed_records(self) -> None:
-        self.params_spec = ','.join([f'{key}:{str(value)}' for key, value in self.param_kwargs.items()])
+        """
+        Delete the processed records from the target table
+        """
+        # Use target schema
+        use_schema(conn=self.pg_connection, schema=self.pg_target_schema)
+        # Create a string representation of the task parameters
+        task_params_spec = ','.join([f'{key}:{str(value)}' for key, value in self.param_kwargs.items()])
+        self.params_spec = task_params_spec if task_params_spec != '' else self.params_spec
+        # Delete the processed records from the target table if the delete_insert flag is set to True
         if self.delete_insert:
             query_str = f"DELETE FROM {self.pg_target_table_name} WHERE task_params_spec = '{self.params_spec}'"
-            self.pg_connection.execute(query_str)
+            with self.pg_connection.cursor() as cursor:
+                cursor.execute(query_str)
+                self.pg_connection.commit()
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
         """
@@ -147,6 +160,13 @@ class EutopiaTask(luigi.Task):
         # Return the DataFrame
         return df
 
+    def query_records_to_update(self) -> list:
+        """
+        Query the records to update from the PostgreSQL database
+        :return: List of records to update
+        """
+        raise NotImplementedError
+
     def run(self):
         """
         Run the main task. Process Elsevier publications. Write the results to the PostgreSQL database and save the
@@ -158,9 +178,13 @@ class EutopiaTask(luigi.Task):
         # Delete processed records (if needed)
         self.delete_processed_records()
 
+        # Use source schema
+        use_schema(conn=self.pg_connection, schema=self.pg_source_schema)
         # Fetch records to process
         iterable = self.query_records_to_update()
 
+        # Use target schema
+        use_schema(conn=self.pg_connection, schema=self.pg_target_schema)
         # Process the records
         iterable_processed = self.process(iterable=iterable)
 

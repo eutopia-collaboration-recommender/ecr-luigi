@@ -1,5 +1,6 @@
 import backoff
 import requests
+import json
 
 
 @backoff.on_exception(
@@ -24,3 +25,25 @@ def crossref_request(url: str, params: dict = dict()) -> dict:
         response_json = {}
 
     return response_json
+
+
+def query_top_n_by_keyword(base_url: str,
+                           params: dict,
+                           keyword: str,
+                           n: int) -> list:
+    """
+    Query the top N DOIs by keyword concatenated to a string to be input into the text embedding model.
+    :param params:
+    :param base_url:
+    :param keyword: Keyword to search for.
+    :param n: Number of DOIs to return.
+    :return: List of DOIs.
+    """
+
+    # Query the top N by keyword, sorted by relevance, only select title and abstract
+    url = f"{base_url}?query={keyword}&sort=relevance&rows={n}&filter=has-abstract:true"
+    response = crossref_request(url, params)
+    return [dict(
+        publication_doi=article['DOI'],
+        publication_metadata=json.dumps(article)
+    ) for article in response.get("message")['items']][:n]

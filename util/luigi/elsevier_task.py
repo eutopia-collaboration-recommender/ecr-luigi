@@ -25,6 +25,7 @@ class ElsevierTask(EutopiaTask):
         # Number of records to checkpoint
         self.num_records_to_checkpoint = self.config.CROSSREF.NUM_RECORDS_TO_CHECKPOINT
 
+
     def close_connection(self):
         self.mongo_client.close()
         self.pg_connection.close()

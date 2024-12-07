@@ -2,15 +2,12 @@ import json
 import time
 import luigi
 
-from tasks.source_update.crossref_update_publications import CrossrefUpdatePublicationsTask
-from tasks.source_update.elsevier_update_publications import ElsevierUpdatePublicationsTask
-from tasks.source_update.orcid_update_member_person import OrcidUpdateMemberPersonTask
-from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
+from tasks.dbt.dbt_data_ingestion import DbtDataIngestionTask
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 
 
-class MainUpdateTask(EutopiaTask):
+class DataIngestionTask(EutopiaTask):
     """
     Description: Main task to update all the data sources for the EUTOPIA project. The task requires the start and end date:
     1. Elsevier publications.
@@ -37,26 +34,9 @@ class MainUpdateTask(EutopiaTask):
         Requires all tasks to be completed before this task can be run.
         :return: OrcidModifiedMembersTask
         """
-        all_tasks = list()
-        # Update Elsevier publications
-        all_tasks.append(ElsevierUpdatePublicationsTask(updated_date_start=self.updated_date_start,
-                                                        updated_date_end=self.updated_date_end))
 
-        # Update Crossref publications
-        # ** Note that this also triggers fetching ORCID modified members and ORCID member works for all EUTOPIA institutions
-        all_tasks.append(CrossrefUpdatePublicationsTask(updated_date_start=self.updated_date_start,
-                                                        updated_date_end=self.updated_date_end))
-
-        # Update ORCID member metadata for all EUTOPIA institutions
-        all_tasks.extend(
-            [OrcidUpdateMemberPersonTask(
-                affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['INSTITUTION_PRETTY_NAME'],
-                updated_date_start=self.updated_date_start,
-                updated_date_end=self.updated_date_end)
-                for institution_id in EUTOPIA_INSTITUTION_REGISTRY.keys()]
-        )
         # Return requirements
-        return all_tasks
+        return DbtDataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
 
     def run(self):
         """
@@ -81,4 +61,4 @@ class MainUpdateTask(EutopiaTask):
 
 
 if __name__ == '__main__':
-    luigi.build([MainUpdateTask()], local_scheduler=True)
+    luigi.build([DataIngestionTask()], local_scheduler=True)

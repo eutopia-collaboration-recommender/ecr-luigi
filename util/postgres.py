@@ -111,3 +111,15 @@ def query(conn: psycopg2.extensions.connection, query: str) -> pd.DataFrame:
     df = pd.read_sql(query, conn)
     # Return the DataFrame
     return df
+
+
+def use_schema(conn: psycopg2.extensions.connection, schema: str) -> None:
+    """
+    Set the schema for the connection
+    :param conn: Postgres connection
+    :param schema: Postgres schema
+    """
+    # Set the schema
+    conn.cursor().execute(f'SET search_path TO {schema}')
+    # Commit the transaction
+    conn.commit()
