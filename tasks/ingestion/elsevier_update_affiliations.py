@@ -52,7 +52,7 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
             record = safe_get(document, f'records.{record_id}')
             # Extract the publication metadata
             affiliated_publications.append({
-                'publication_id': document.get('dc:identifier', None),
+                'publication_id': safe_get(record, 'dc:identifier'),
                 'publication_eid': safe_get(record, 'eid'),
                 'publication_doi': safe_get(record, 'prism:doi'),
                 # Affiliation metadata
