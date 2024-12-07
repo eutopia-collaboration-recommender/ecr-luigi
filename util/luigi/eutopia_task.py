@@ -7,6 +7,8 @@ import luigi
 import pandas as pd
 
 from box import Box
+
+from util.common import to_snake_case
 from util.postgres import create_connection, use_schema, write_table
 
 
@@ -137,7 +139,7 @@ class EutopiaTask(luigi.Task):
         # Use target schema
         use_schema(conn=self.pg_connection, schema=self.pg_target_schema)
         # Create a string representation of the task parameters
-        task_params_spec = ','.join([f'{key}:{str(value)}' for key, value in self.param_kwargs.items()])
+        task_params_spec = ','.join([f'{key}:{to_snake_case(str(value))}' for key, value in self.param_kwargs.items()])
         self.params_spec = task_params_spec if task_params_spec != '' else self.params_spec
         # Delete the processed records from the target table if the delete_insert flag is set to True
         if self.delete_insert:
