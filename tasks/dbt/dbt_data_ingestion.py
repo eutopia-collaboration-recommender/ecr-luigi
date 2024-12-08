@@ -2,13 +2,13 @@ import json
 import time
 import luigi
 
-from click.testing import CliRunner
-from dbt.cli.main import run
-
+from dbt.cli.main import dbtRunner, dbtRunnerResult
 from tasks.ingestion.crossref_top_n_research_area_publications import CrossrefTopNResearchAreaPublicationsTask
 from tasks.ingestion.crossref_update_publications import CrossrefUpdatePublicationsTask
 from tasks.ingestion.elsevier_update_publications import ElsevierUpdatePublicationsTask
+from tasks.ingestion.eutopia_institutions import EutopiaInstitutionsTask
 from tasks.ingestion.orcid_update_member_person import OrcidUpdateMemberPersonTask
+
 from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
@@ -37,6 +37,8 @@ class DbtDataIngestionTask(EutopiaTask):
         :return: OrcidModifiedMembersTask
         """
         tasks = list()
+        # Get EUTOPIA institutions
+        tasks.append(EutopiaInstitutionsTask())
         # Get CERIF research areas and top N publications for each research area
         tasks.append(CrossrefTopNResearchAreaPublicationsTask())
         # Update Elsevier publications
@@ -66,8 +68,13 @@ class DbtDataIngestionTask(EutopiaTask):
         """
         self.logger.info(f"Running {self.__class__.__name__}.")
         # Execute dbt run (tag: data_ingestion)
-        dbt_runner = CliRunner()
-        dbt_runner.invoke(run, ['--project-dir', 'dbt', '--select', 'tag:data_ingestion'])
+        dbt_runner = dbtRunner()
+        cli_args = ['run', '--project-dir', './dbt', '--select', 'tag:data_ingestion']
+        res: dbtRunnerResult = dbt_runner.invoke(cli_args)
+
+        # inspect the results
+        for r in res.result:
+            self.logger.info(f"{r.node.name}: {r.status}")
         # Save number of rows written local target
         with self.output().open('w') as f:
             result = json.dumps({'task-finished': True})

@@ -1,5 +1,7 @@
 SET SEARCH_PATH TO jezero;
 
+DROP TABLE IF EXISTS orcid_modified_member;
+
 CREATE TABLE orcid_modified_member
 (
     url              VARCHAR(64),
@@ -10,4 +12,4 @@ CREATE TABLE orcid_modified_member
     task_params_spec TEXT
 );
 
--- DROP TABLE IF EXISTS orcid_modified_member;
+

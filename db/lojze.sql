@@ -1,3 +1,4 @@
-CREATE DATABASE lojze;
+-- CREATE DATABASE lojze;
+
 CREATE SCHEMA jezero;
 CREATE SCHEMA analitik;

@@ -1,3 +1,7 @@
+SET SEARCH_PATH TO analitik;
+
+DROP TABLE IF EXISTS article_text_embedding;
+
 CREATE TABLE article_text_embedding
 (
     article_id             TEXT,
@@ -5,5 +9,3 @@ CREATE TABLE article_text_embedding
     row_created_at         TIMESTAMP,
     task_params_spec       TEXT
 );
-
-{#DROP TABLE IF EXISTS article_text_embedding;#}

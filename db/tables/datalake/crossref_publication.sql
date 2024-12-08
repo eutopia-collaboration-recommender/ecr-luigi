@@ -1,5 +1,7 @@
 SET SEARCH_PATH TO jezero;
 
+DROP TABLE IF EXISTS crossref_publication;
+
 CREATE TABLE crossref_publication
 (
     publication_doi      TEXT,
@@ -7,5 +9,3 @@ CREATE TABLE crossref_publication
     row_created_at       TIMESTAMP,
     task_params_spec     TEXT
 );
-
--- DROP TABLE IF EXISTS crossref_publication;

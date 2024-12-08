@@ -1,5 +1,7 @@
 SET SEARCH_PATH TO jezero;
 
+DROP TABLE IF EXISTS orcid_member_person;
+
 CREATE TABLE orcid_member_person
 (
     member_id TEXT,
@@ -8,5 +10,3 @@ CREATE TABLE orcid_member_person
     row_updated_at     TIMESTAMP,
     task_params_spec     TEXT
 );
-
--- DROP TABLE IF EXISTS orcid_member_person;

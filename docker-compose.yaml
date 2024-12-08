@@ -1,13 +1,43 @@
-version: '3.9'
+version: '3.8'
 
 services:
   postgres:
     image: postgres:17-alpine
-    ports:
-      - 5432:5432
-    volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
+    container_name: postgres_container
     environment:
-      - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=lojze
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  mongo_elsevier:
+    image: mongo:4.4.6  # Last version that does not require AVX
+    container_name: mongo_elsevier
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - ./mongorestore.sh:/docker-entrypoint-initdb.d/mongorestore.sh
+      - /home/eucollab/dump/unzipped:/dump
+      - mongo_data:/data/db
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: "/home/eucollab/postgres_data"
+      o: bind
+  mongo_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: "/home/eucollab/mongo_data"
+      o: bind
+
+    #sudo docker volume rm $(sudo docker volume ls  | grep -v "ecr-luigi" | awk 'NR>1 {print $2}')

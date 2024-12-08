@@ -1,5 +1,7 @@
 SET SEARCH_PATH TO jezero;
 
+DROP TABLE IF EXISTS elsevier_publication;
+
 CREATE TABLE elsevier_publication
 (
     publication_id                   TEXT,
@@ -17,5 +19,3 @@ CREATE TABLE elsevier_publication
     row_created_at                   TIMESTAMP,
     task_params_spec     TEXT
 );
-
--- DROP TABLE IF EXISTS elsevier_publication;
