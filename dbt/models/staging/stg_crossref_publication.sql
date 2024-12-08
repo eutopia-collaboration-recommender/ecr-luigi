@@ -25,7 +25,7 @@ SELECT LOWER(publication_doi)                                                   
      , (REGEXP_MATCHES(author_json ->> 'ORCID', '([0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})'))[1] AS author_orcid
      , COALESCE(CAST(author_json ->> 'authenticated-orcid' AS BOOLEAN),
                 FALSE)                                                                       AS is_author_orcid_authenticated
-     , affiliation_json ->> 'name'                                                           AS affiliation_name
+     , affiliation_json ->> 'name'                                                           AS affiliation_identifier
      , publication_metadata ->> 'URL'                                                        AS article_url
      , publication_metadata ->> 'funder'                                                     AS article_funder
      , publication_metadata ->> 'institution'                                                AS article_institution
