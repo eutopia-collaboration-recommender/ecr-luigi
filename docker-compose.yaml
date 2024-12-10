@@ -5,22 +5,22 @@ services:
     image: postgres:17-alpine
     container_name: postgres_container
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=lojze
+      - PGDATA=/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5000:5432"
     restart: always
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
   mongo_elsevier:
     image: mongo:4.4.6  # Last version that does not require AVX
-    container_name: mongo_elsevier
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    container_name: mongo_elsevier_container
+    env_file:
+      - .env
     ports:
-      - "27017:27017"
+      - "27000:27017"
     restart: always
     volumes:
       - ./mongorestore.sh:/docker-entrypoint-initdb.d/mongorestore.sh
