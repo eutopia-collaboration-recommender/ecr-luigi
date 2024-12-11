@@ -30,14 +30,14 @@ SELECT LOWER(publication_doi)                                                   
      , publication_metadata ->> 'funder'                                                     AS article_funder
      , publication_metadata ->> 'institution'                                                AS article_institution
      , publication_metadata ->> 'publisher'                                                  AS article_publisher
-     , publication_metadata ->> 'title'                                                      AS article_title
-     , publication_metadata ->> 'short-title'                                                AS article_short_title
-     , publication_metadata ->> 'subtitle'                                                   AS article_subtitle
-     , publication_metadata ->> 'original-title'                                             AS article_original_title
-     , publication_metadata ->> 'container-title'                                            AS article_container_title
-     , publication_metadata ->> 'short-container-title'                                      AS article_short_container_title
+     , JSONB_ARRAY_ELEMENTS_TEXT(publication_metadata -> 'title')                            AS article_title
+     , JSONB_ARRAY_ELEMENTS_TEXT(publication_metadata -> 'short-title')                      AS article_short_title
+     , JSONB_ARRAY_ELEMENTS_TEXT(publication_metadata -> 'subtitle')                         AS article_subtitle
+     , JSONB_ARRAY_ELEMENTS_TEXT(publication_metadata -> 'original-title')                   AS article_original_title
+     , JSONB_ARRAY_ELEMENTS_TEXT(publication_metadata -> 'container-title')                  AS article_container_title
+     , JSONB_ARRAY_ELEMENTS_TEXT(publication_metadata -> 'short-container-title')            AS article_short_container_title
      , publication_metadata ->> 'abstract'                                                   AS article_abstract
-     , publication_metadata ->> 'reference'                                                  AS article_reference
+     , publication_metadata -> 'reference'                                                   AS article_references
      , CAST(publication_metadata ->> 'is-referenced-by-count' AS INT)                        AS is_referenced_by_count
      , {{ to_date_from_crossref_json('indexed_dt_json') }}                                   AS article_indexed_dt
      , LEAST(
