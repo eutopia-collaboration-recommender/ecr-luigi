@@ -2,7 +2,12 @@ import json
 import time
 import luigi
 
-from tasks.dbt.dbt_data_ingestion import DbtDataIngestionTask
+from tasks.ingestion.crossref_top_n_research_area_publications import CrossrefTopNResearchAreaPublicationsTask
+from tasks.ingestion.crossref_update_publications import CrossrefUpdatePublicationsTask
+from tasks.ingestion.elsevier_update_publications import ElsevierUpdatePublicationsTask
+from tasks.ingestion.eutopia_institutions import EutopiaInstitutionsTask
+from tasks.ingestion.orcid_update_member_person import OrcidUpdateMemberPersonTask
+from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 
@@ -32,11 +37,32 @@ class DataIngestionTask(EutopiaTask):
     def requires(self):
         """
         Requires all tasks to be completed before this task can be run.
-        :return: OrcidModifiedMembersTask
+        :return: List of tasks
         """
+        tasks = list()
+        # Get EUTOPIA institutions
+        tasks.append(EutopiaInstitutionsTask())
+        # Get CERIF research areas and top N publications for each research area
+        tasks.append(CrossrefTopNResearchAreaPublicationsTask())
+        # Update Elsevier publications
+        tasks.append(ElsevierUpdatePublicationsTask(updated_date_start=self.updated_date_start,
+                                                    updated_date_end=self.updated_date_end))
 
+        # Update Crossref publications
+        # ** Note that this also triggers fetching ORCID modified members and ORCID member works for all EUTOPIA institutions
+        tasks.append(CrossrefUpdatePublicationsTask(updated_date_start=self.updated_date_start,
+                                                    updated_date_end=self.updated_date_end))
+
+        # Update ORCID member metadata for all EUTOPIA institutions
+        tasks.extend(
+            [OrcidUpdateMemberPersonTask(
+                affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['institution_pretty_name'],
+                updated_date_start=self.updated_date_start,
+                updated_date_end=self.updated_date_end)
+                for institution_id in EUTOPIA_INSTITUTION_REGISTRY.keys()]
+        )
         # Return requirements
-        return DbtDataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        return tasks
 
     def run(self):
         """
