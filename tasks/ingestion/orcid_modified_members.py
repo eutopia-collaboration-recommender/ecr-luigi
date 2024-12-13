@@ -67,6 +67,8 @@ class OrcidModifiedMembersTask(OrcidTask):
             start=ix * self.num_rows,
             num_rows=self.num_rows
         )
+        if response['result'] is None:
+            return []
         # Return the modified records
         return [result['orcid-identifier'] for result in response['result']]
 

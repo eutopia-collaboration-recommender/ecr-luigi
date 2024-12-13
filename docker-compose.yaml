@@ -7,6 +7,8 @@ services:
     environment:
       - POSTGRES_DB=lojze
       - PGDATA=/var/lib/postgresql/data
+    expose:
+      - "5432"
     ports:
       - "5000:5432"
     restart: always
@@ -14,6 +16,9 @@ services:
       - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+
   mongo_elsevier:
     image: mongo:4.4.6  # Last version that does not require AVX
     container_name: mongo_elsevier_container
