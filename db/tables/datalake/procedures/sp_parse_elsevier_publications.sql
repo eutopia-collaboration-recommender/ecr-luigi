@@ -147,3 +147,14 @@ END;
 $$;
 
 CALL sp_parse_elsevier_publications('2020-01-01', '2020-12-31');
+
+DO
+$do$
+    BEGIN
+        FOR i in 2000..2024
+            LOOP
+                CALL sp_parse_elsevier_publications(CONCAT(i, '-01-01')::DATE, CONCAT(i, '-12-31')::DATE);
+                RAISE NOTICE 'Parsed Elsevier publications for year: %', i;
+            END LOOP;
+    END;
+$do$;
