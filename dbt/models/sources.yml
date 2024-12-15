@@ -24,5 +24,7 @@ sources:
         description: "Top N CERIF research area publications from Crossref."
       - name: elsevier_publication
         description: "Elsevier publications."
+      - name: elsevier_publication_parsed
+        description: "Elsevier publications parsed."
       - name: elsevier_publication_affiliation
         description: "Elsevier publication affiliations."
