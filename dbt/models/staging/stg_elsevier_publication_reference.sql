@@ -1,7 +1,7 @@
-WITH ref_stg_elsevier_publication AS (SELECT *
-                                      FROM {{ ref('stg_elsevier_publication') }})
-SELECT p.article_id,
+WITH src_elsevier_publication AS (SELECT *
+                                  FROM {{ source('lojze', 'elsevier_publication') }})
+SELECT p.publication_id              AS article_id,
        r.value ->> 'reference_id'    AS reference_id,
        r.value ->> 'reference_title' AS reference_title
-FROM ref_stg_elsevier_publication AS p,
-     LATERAL JSONB_ARRAY_ELEMENTS(article_references) AS r
+FROM src_elsevier_publication AS p,
+     LATERAL JSONB_ARRAY_ELEMENTS(publication_references) AS r

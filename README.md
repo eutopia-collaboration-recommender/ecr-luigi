@@ -25,3 +25,9 @@ nohup luigi --module tasks.ingestion.crossref_update_publications CrossrefUpdate
 pgrep -a luigi
 kill <pid>
 ```
+
+TODO:
+
+- Add JSON parsing to the Luigi task pipeline
+    - Crossref
+    - Elsevier
