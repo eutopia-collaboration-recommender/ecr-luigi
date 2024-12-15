@@ -20,6 +20,8 @@ sources:
         description: "ORCID members by modification date."
       - name: crossref_publication
         description: "Crossref publications."
+      - name: crossref_publication_parsed
+        description: "Crossref publications parsed."
       - name: crossref_top_n_research_area_publication
         description: "Top N CERIF research area publications from Crossref."
       - name: elsevier_publication

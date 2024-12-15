@@ -1,6 +1,6 @@
-WITH ref_stg_crossref_publication AS (SELECT *
-                                      FROM {{ ref('stg_crossref_publication') }})
-SELECT p.article_doi,
+WITH src_crossref_publication AS (SELECT *
+                                  FROM {{ source('lojze', 'crossref_publication') }})
+SELECT p.publication_doi             AS article_doi,
        r.value ->> 'key'             AS reference_article_key,
        r.value ->> 'DOI'             AS reference_article_doi,
        r.value ->> 'ISSN'            AS reference_article_issn,
@@ -18,5 +18,5 @@ SELECT p.article_doi,
        r.value ->> 'unstructured'    AS reference_article_unstructured,
        r.value ->> 'edition'         AS reference_article_edition,
        r.value ->> 'journal-title'   AS reference_article_journal_title
-FROM ref_stg_crossref_publication AS p,
-     LATERAL JSONB_ARRAY_ELEMENTS(article_references) AS r
+FROM src_crossref_publication AS p,
+     LATERAL JSONB_ARRAY_ELEMENTS(p.publication_metadata -> 'message' -> 'reference') AS r

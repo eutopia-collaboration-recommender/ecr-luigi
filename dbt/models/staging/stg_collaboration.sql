@@ -4,8 +4,8 @@ WITH ref_stg_orcid_member_work AS (SELECT *
                                      FROM {{ ref('stg_orcid_member_person') }})
    , ref_stg_orcid_member_employment_by_work AS (SELECT *
                                                  FROM {{ ref('stg_orcid_member_employment_by_work') }})
-   , ref_stg_crossref_publication AS (SELECT *
-                                      FROM {{ ref('stg_crossref_publication') }})
+   , src_crossref_publication AS (SELECT *
+                                  FROM {{ source('lojze', 'crossref_publication') }})
    , src_elsevier_publication AS (SELECT *
                                   FROM {{ source('lojze', 'elsevier_publication') }})
    , ref_stg_elsevier_affiliation AS (SELECT *
@@ -31,7 +31,7 @@ FROM ref_stg_orcid_member_work o
                    ON oe.member_id = o.member_id
                        AND oe.article_id = o.article_id
     -- Join with Crossref
-         LEFT JOIN ref_stg_crossref_publication c
+         LEFT JOIN src_crossref_publication c
                    ON o.article_doi = c.article_doi
     -- Join with Elsevier
          LEFT JOIN src_elsevier_publication e
@@ -54,7 +54,7 @@ SELECT e.article_id              AS article_id,
        e.author_id               AS elsevier_author_id,
        ea.affiliation_identifier AS elsevier_affiliation_identifier,
        'elsevier'                AS source
-FROM ref_stg_elsevier_publication e
+FROM src_elsevier_publication e
          LEFT JOIN ref_stg_elsevier_affiliation ea
                    ON ea.article_id = e.article_id
          LEFT JOIN ref_stg_orcid_member_person op
@@ -65,6 +65,6 @@ FROM ref_stg_elsevier_publication e
          LEFT JOIN ref_stg_orcid_member_employment_by_work oe
                    ON oe.member_id = o.member_id
                        AND oe.article_id = o.article_id
-         LEFT JOIN ref_stg_crossref_publication c
+         LEFT JOIN src_crossref_publication c
                    ON e.article_doi = c.article_doi
 

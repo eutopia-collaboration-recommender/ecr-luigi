@@ -1,5 +1,5 @@
-WITH ref_stg_crossref_publication AS (SELECT *
-                                      FROM {{ ref('stg_crossref_publication') }})
+WITH src_crossref_publication AS (SELECT *
+                                  FROM {{ source('lojze', 'crossref_publication_parsed') }})
 SELECT DISTINCT article_doi,
                 article_publisher,
                 article_title,
@@ -10,4 +10,4 @@ SELECT DISTINCT article_doi,
                 article_short_container_title,
                 article_abstract,
                 article_publication_dt
-FROM ref_stg_crossref_publication
+FROM src_crossref_publication
