@@ -20,6 +20,7 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pg_target_table_name = 'crossref_publication'
+        self.delete_insert = False
 
     updated_date_start: str = luigi.OptionalParameter(
         description='Search start date',
@@ -95,5 +96,5 @@ class CrossrefUpdatePublicationsTask(CrossrefTask):
 
 if __name__ == '__main__':
     luigi.build([
-        CrossrefUpdatePublicationsTask(),
+        CrossrefUpdatePublicationsTask(updated_date_start='2024-01-01', updated_date_end='2024-11-30'),
     ], local_scheduler=True)

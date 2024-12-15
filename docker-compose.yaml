@@ -18,6 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    shm_size: "32g"
 
   mongo_elsevier:
     image: mongo:4.4.6  # Last version that does not require AVX
@@ -45,4 +46,4 @@ volumes:
       device: "/home/eucollab/mongo_data"
       o: bind
 
-    #sudo docker volume rm $(sudo docker volume ls  | grep -v "ecr-luigi" | awk 'NR>1 {print $2}')
+    # sudo docker volume rm $(sudo docker volume ls  | grep -v "ecr-luigi" | awk 'NR>1 {print $2}')

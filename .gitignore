@@ -166,3 +166,7 @@ out/*
 !out/.gitkeep
 
 config.yaml
+nohup.out
+luigid.pid
+logging/*
+!logging/logging.conf

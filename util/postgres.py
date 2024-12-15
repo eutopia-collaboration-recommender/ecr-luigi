@@ -24,6 +24,7 @@ def create_connection(username: str,
     conn_string = f'postgresql://{username}:{password}@{host}:{port}/{database}'
     # Create the connection
     conn = psycopg2.connect(conn_string)
+    conn.autocommit = True
     # Set the schema
     conn.cursor().execute(f'SET search_path TO {schema}')
     # Return the connection
@@ -86,15 +87,17 @@ def write_table(conn: psycopg2.extensions.connection,
 
             # Execute the merge query
             cursor.execute(merge_query.replace("temp_table", temp_table))
+
+            # Commit the transaction
+            conn.commit()
         else:
             # APPEND Logic
             cursor.copy_expert(
                 sql=f"COPY {table_name} ({columns}) FROM STDIN WITH CSV",
                 file=string_io
             )
-
-        # Commit the transaction
-        conn.commit()
+            # Commit the transaction
+            conn.commit()
 
     # Return the DataFrame
     return len(df)

@@ -53,7 +53,6 @@ class EutopiaTask(luigi.Task):
             database=self.config.POSTGRES.DATABASE,
             schema=self.config.POSTGRES.SCHEMA
         )
-
         self.pg_source_schema = self.config.POSTGRES.SCHEMA
         self.pg_target_schema = self.config.POSTGRES.SCHEMA
 
