@@ -27,24 +27,11 @@ WITH src_crossref_top_n_research_area_publication as (SELECT publication_doi,
      publication_references_agg
          AS (SELECT publication_doi,
                     STRING_AGG(
-                            'Key: ' || COALESCE(reference_article_key, 'n/a') ||
-                            ', DOI: ' || COALESCE(reference_article_doi, 'n/a') ||
-                            ', ISSN: ' || COALESCE(reference_article_issn, 'n/a') ||
-                            ', ISBN: ' || COALESCE(reference_article_isbn, 'n/a') ||
-                            ', Issue: ' || COALESCE(reference_article_issue, 'n/a') ||
-                            ', Series Title: ' || COALESCE(reference_article_series_title, 'n/a') ||
-                            ', DOI Asserted By: ' || COALESCE(reference_article_doi_asserted_by, 'n/a') ||
-                            ', First Page: ' || COALESCE(reference_article_first_page, 'n/a') ||
-                            ', Component: ' || COALESCE(reference_article_component, 'n/a') ||
-                            ', Article Title: ' || COALESCE(reference_article_title, 'n/a') ||
-                            ', Volume Title: ' || COALESCE(reference_article_volume_title, 'n/a') ||
-                            ', Volume: ' || COALESCE(reference_article_volume, 'n/a') ||
-                            ', Author: ' || COALESCE(reference_article_author, 'n/a') ||
-                            ', Year: ' || COALESCE(reference_article_year, 'n/a') ||
-                            ', Unstructured: ' || COALESCE(reference_article_unstructured, 'n/a') ||
-                            ', Edition: ' || COALESCE(reference_article_edition, 'n/a') ||
-                            ', Journal Title: ' || COALESCE(reference_article_journal_title, 'n/a')
-                        , '\n') AS references
+                            COALESCE(', Article Title: ' || reference_article_title, '') ||
+                            COALESCE(', Author: ' || reference_article_author, '') ||
+                            COALESCE(', Unstructured: ' || reference_article_unstructured, '') ||
+                            COALESCE(', Journal Title: ' || reference_article_journal_title, '')
+                        , ', ') AS references
              FROM publication_references
              GROUP BY publication_doi),
      publication_parsed AS (SELECT LOWER(c.publication_doi)                                                     AS article_doi
@@ -82,11 +69,7 @@ SELECT article_doi,
        article_publication_dt,
        -- Embedding input for the article
        CONCAT_WS('\n', 'Title: ' || COALESCE(article_title, 'n/a'),
-                 'Short Title: ' || COALESCE(article_short_title, 'n/a'),
-                 'Subtitle: ' || COALESCE(article_subtitle, 'n/a'),
-                 'Original Title: ' || COALESCE(article_original_title, 'n/a'),
                  'Container Title: ' || COALESCE(article_container_title, 'n/a'),
-                 'Short Container Title: ' || COALESCE(article_short_container_title, 'n/a'),
                  'Abstract: ' || COALESCE(article_abstract, 'n/a'),
                  'References: ' || COALESCE(article_references, 'n/a')) AS article_embedding_input
 FROM publication_parsed
