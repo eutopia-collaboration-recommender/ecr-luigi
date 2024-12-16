@@ -57,7 +57,6 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
         SELECT DISTINCT member_id 
         FROM {self.source_table_name} 
         WHERE affiliation = '{affiliation}'
-            AND member_id NOT IN (SELECT DISTINCT member_id FROM {self.pg_target_table_name})
         """
         # Fetch the modified records from Postgres
         modified_records_df = query(
