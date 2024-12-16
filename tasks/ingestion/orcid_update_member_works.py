@@ -52,10 +52,17 @@ class OrcidUpdateMemberWorksTask(OrcidTask):
         """
         # Escape the single quotes in the affiliation name
         affiliation = self.affiliation_name.replace("'", "''")
+
+        query_str = f"""
+        SELECT DISTINCT member_id 
+        FROM {self.source_table_name} 
+        WHERE affiliation = '{affiliation}'
+            AND member_id NOT IN (SELECT DISTINCT member_id FROM {self.pg_target_table_name})
+        """
         # Fetch the modified records from Postgres
         modified_records_df = query(
             conn=self.pg_connection,
-            query=f"SELECT DISTINCT member_id FROM {self.source_table_name} WHERE affiliation = '{affiliation}'"
+            query=query_str
         )
 
         modified_records = modified_records_df['member_id'].tolist()

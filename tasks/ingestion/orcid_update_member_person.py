@@ -2,6 +2,7 @@ import time
 import luigi
 import pandas as pd
 
+from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
 from util.orcid.member import get_orcid_member_person
 from util.luigi.orcid_task import OrcidTask
 from tasks.ingestion.orcid_modified_members import OrcidModifiedMembersTask
@@ -117,7 +118,9 @@ class OrcidUpdateMemberPersonTask(OrcidTask):
 
 if __name__ == '__main__':
     luigi.build([
-        OrcidUpdateMemberPersonTask(affiliation_name="Ca' Foscari University of Venice"),
-        OrcidUpdateMemberPersonTask(affiliation_name="University of Ljubljana")
+        OrcidUpdateMemberPersonTask(
+            affiliation_name=EUTOPIA_INSTITUTION_REGISTRY[institution_id]['institution_pretty_name']
+        )
+        for institution_id in EUTOPIA_INSTITUTION_REGISTRY.keys()
     ],
         local_scheduler=True)
