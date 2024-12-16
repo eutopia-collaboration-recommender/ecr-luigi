@@ -11,30 +11,18 @@ WITH src_datalake_orcid_member_employments AS (SELECT member_id,
                                   es.value #>> '{employment-summary,organization,address,country}' AS organization_country,
                                   es.value #>> '{employment-summary,department-name}'              AS department_name,
                                   es.value #>> '{employment-summary,role-title}'                   AS role_title,
-                                  COALESCE(
-                                          MAKE_DATE((es.value #>> '{employment-summary,start-date,year,value}')::INT,
-                                                    COALESCE(
-                                                            (es.value #>> '{employment-summary,start-date,month,value}')::INT,
-                                                            1),
-                                                    COALESCE(
-                                                            (es.value #>> '{employment-summary,start-date,day,value}')::INT,
-                                                            1)),
-                                          MAKE_DATE(1900, 1, 1))                                   AS start_dt,
-                                  CASE
-                                      -- This is a special case for the ORCID record, because we get 31st of November as the end date from the source
-                                      WHEN m.member_id = '0000-0002-9449-2952' THEN MAKE_DATE(1996, 11, 30)
-                                      ELSE
-                                          COALESCE(
-                                                  MAKE_DATE(
-                                                          (es.value #>> '{employment-summary,end-date,year,value}')::INT,
-                                                          COALESCE(
-                                                                  (es.value #>> '{employment-summary,end-date,month,value}')::INT,
-                                                                  1),
-                                                          COALESCE(
-                                                                  (es.value #>> '{employment-summary,end-date,day,value}')::INT,
-                                                                  1)),
-                                                  MAKE_DATE(2100, 1, 1))
-                                      END                                                          AS end_dt
+                                  COALESCE((es.value #>> '{employment-summary,start-date,year,value}')::INT,
+                                           1)                                                      AS start_year,
+                                  COALESCE((es.value #>> '{employment-summary,start-date,month,value}')::INT,
+                                           1)                                                      AS start_month,
+                                  COALESCE((es.value #>> '{employment-summary,start-date,day,value}')::INT,
+                                           1)                                                      AS start_day,
+                                  COALESCE((es.value #>> '{employment-summary,end-date,year,value}')::INT,
+                                           2100)                                                   AS end_year,
+                                  COALESCE((es.value #>> '{employment-summary,end-date,month,value}')::INT,
+                                           1)                                                      AS end_month,
+                                  COALESCE((es.value #>> '{employment-summary,end-date,day,value}')::INT,
+                                           1)                                                      AS end_day
                            FROM src_datalake_orcid_member_employments AS m,
                                 LATERAL JSONB_ARRAY_ELEMENTS(member_employments) AS e,
                                 LATERAL JSONB_ARRAY_ELEMENTS(e -> 'summaries') AS es)
@@ -46,13 +34,13 @@ SELECT member_id,
                  organization_region,
                  organization_country,
                  department_name,
-                 role_title) AS affiliation_identifier,
+                 role_title)                                          AS affiliation_identifier,
        organization_name,
        organization_city,
        organization_region,
        organization_country,
        department_name,
        role_title,
-       start_dt,
-       end_dt
+       {{ safe_make_date('start_year', 'start_month', 'start_day') }} AS start_date,
+       {{ safe_make_date('end_year', 'end_month', 'end_day') }}       AS end_date
 FROM member_employment
