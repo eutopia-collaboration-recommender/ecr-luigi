@@ -1,38 +1,57 @@
-WITH ref_stg_orcid_member_work AS (SELECT *
-                                   FROM {{ ref('stg_orcid_article')}})
-   , ref_stg_crossref_publication AS (SELECT *
-                                      FROM {{ ref('stg_crossref_article')}})
-   , ref_stg_elsevier_publication AS (SELECT *
-                                      FROM {{ ref('stg_elsevier_article')}})
-   , ref_stg_collaboration AS (SELECT DISTINCT article_id,
-                                               article_doi,
-                                               article_eid,
-                                               elsevier_article_id,
-                                               orcid_article_id,
-                                               source
-                               FROM {{ ref('stg_collaboration')}})
-   , merged AS (SELECT main.article_id,
-                       main.article_doi,
-                       main.article_eid,
-                       c.article_publisher,
-                       COALESCE(c.article_title, e.article_title, o.article_title)  AS article_title,
-                       c.article_short_title,
-                       c.article_subtitle,
-                       c.article_original_title,
-                       COALESCE(c.article_container_title, o.article_journal_title) AS article_container_title,
-                       c.article_short_container_title,
-                       COALESCE(c.article_abstract, e.article_abstract)             AS article_abstract,
-                       e.article_keywords,
-                       COALESCE(c.article_publication_dt, e.article_publication_dt,
-                                o.article_publication_dt)                           AS article_publication_dt,
-                       main.source                                                  AS article_source
-                FROM ref_stg_collaboration main
-                         LEFT JOIN ref_stg_crossref_publication c
-                                   ON c.article_doi = main.article_doi
-                         LEFT JOIN ref_stg_elsevier_publication e
-                                   ON e.article_id = main.elsevier_article_id
-                         LEFT JOIN ref_stg_orcid_member_work o
-                                   ON o.article_id = main.orcid_article_id)
+WITH ref_orcid_article AS (SELECT *
+                           FROM {{ ref('stg_orcid_article') }})
+   , ref_crossref_article AS (SELECT *
+                              FROM {{ ref('stg_crossref_article') }})
+   , ref_elsevier_article AS (SELECT *
+                              FROM {{ ref('stg_elsevier_article') }})
+   , orcid_without_elsevier AS (SELECT *
+                                FROM ref_orcid_article
+                                WHERE article_eid NOT IN (SELECT article_eid
+                                                          FROM ref_elsevier_article))
+   , articles AS (SELECT main.article_id,
+                         main.article_doi,
+                         main.article_eid,
+                         c.article_publisher,
+                         COALESCE(c.article_title, main.article_title, o.article_title) AS article_title,
+                         c.article_short_title,
+                         c.article_subtitle,
+                         c.article_original_title,
+                         COALESCE(c.article_container_title, o.article_journal_title)   AS article_container_title,
+                         c.article_short_container_title,
+                         COALESCE(c.article_abstract, main.article_abstract)            AS article_abstract,
+                         main.article_keywords,
+                         COALESCE(c.article_publication_dt, main.article_publication_dt,
+                                  o.article_publication_dt)                             AS article_publication_dt,
+                         COALESCE(main.article_references, c.article_references)        AS article_references,
+                         'elsevier'                                                     AS article_source,
+                         ROW_NUMBER() OVER (PARTITION BY main.article_id)               as rn
+                  FROM ref_elsevier_article main
+                           LEFT JOIN ref_crossref_article c
+                                     ON c.article_doi = main.article_doi
+                           LEFT JOIN ref_orcid_article o
+                                     ON o.article_eid = main.article_eid
+{#                  UNION ALL#}
+{#                  SELECT main.article_id,#}
+{#                         main.article_doi,#}
+{#                         main.article_eid,#}
+{#                         c.article_publisher,#}
+{#                         COALESCE(c.article_title, main.article_title)                   AS article_title,#}
+{#                         c.article_short_title,#}
+{#                         c.article_subtitle,#}
+{#                         c.article_original_title,#}
+{#                         COALESCE(c.article_container_title, main.article_journal_title) AS article_container_title,#}
+{#                         c.article_short_container_title,#}
+{#                         c.article_abstract                                              AS article_abstract,#}
+{#                         null                                                            AS article_keywords,#}
+{#                         COALESCE(c.article_publication_dt,#}
+{#                                  main.article_publication_dt)                           AS article_publication_dt,#}
+{#                         c.article_references                                            AS article_references,#}
+{#                         'orcid'                                                         AS article_source,#}
+{#                         ROW_NUMBER() OVER (PARTITION BY main.article_id)                as rn#}
+{#                  FROM orcid_without_elsevier main#}
+{#                           LEFT JOIN ref_crossref_article c#}
+{#                                     ON c.article_doi = main.article_doi#}
+                  )
 SELECT article_id,
        article_doi,
        article_eid,
@@ -45,6 +64,8 @@ SELECT article_id,
        article_short_container_title,
        article_abstract,
        article_keywords,
+       article_references,
        article_publication_dt,
        article_source
-FROM merged
+FROM articles
+WHERE rn = 1

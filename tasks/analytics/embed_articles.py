@@ -1,9 +1,12 @@
 import time
 
 import luigi
-from torch import Tensor
-from transformers import AutoModel, AutoTokenizer
+import pandas as pd
 import torch.nn.functional as F
+
+from adapters import AutoAdapterModel
+from torch import Tensor
+from transformers import AutoTokenizer
 
 from util.embedding import average_pool
 from util.luigi.eutopia_task import EutopiaTask
@@ -21,23 +24,15 @@ class EmbedArticlesTask(EutopiaTask):
         self.pg_target_table_name = 'article_text_embedding'
         self.pg_target_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA
+        self.num_records_to_checkpoint = self.config.TEXT_EMBEDDING.NUM_RECORDS_TO_CHECKPOINT
         self.batch_size = self.config.TEXT_EMBEDDING.BATCH_SIZE
         # Load the model and tokenizer
-        self.model = AutoModel.from_pretrained(self.config.TEXT_EMBEDDING.MODEL)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.config.TEXT_EMBEDDING.MODEL)
+        self.model = AutoAdapterModel.from_pretrained('allenai/specter2_base')
+        self.model.load_adapter("allenai/specter2", source="hf", load_as="specter2", set_active=True)
+        self.tokenizer = AutoTokenizer.from_pretrained('allenai/specter2_base')
 
         # Delete before execution
-        self.delete_insert = True
-
-    updated_date_start: str = luigi.OptionalParameter(
-        description='Search start date',
-        default=time.strftime("%Y-%m-%d",
-                              time.gmtime(time.time() - 7 * 24 * 60 * 60))
-    )
-
-    updated_date_end: str = luigi.OptionalParameter(
-        description='Search end date',
-        default=time.strftime("%Y-%m-%d", time.gmtime(time.time())))
+        self.delete_insert = False
 
     def embed_batch(self, batch: list) -> Tensor:
         """
@@ -65,11 +60,14 @@ class EmbedArticlesTask(EutopiaTask):
         :return: List of DOIs
         """
         query_str = f"""
-            SELECT DISTINCT article_doi   AS article_id,
-                            article_title AS article_text
-            FROM stg_crossref_publication s
+            SELECT s.article_id,
+                   s.article_title,
+                   s.article_container_title,
+                   s.article_abstract,
+                   s.article_references
+            FROM stg_article s
             LEFT JOIN article_text_embedding t 
-                ON S.article_doi = t.article_id
+                ON S.article_id = t.article_id
             WHERE t.article_id IS NULL
         """
         # Fetch the DOIs from the PostgreSQL database
@@ -78,8 +76,15 @@ class EmbedArticlesTask(EutopiaTask):
 
         # To list of dictionaries
         articles = df.to_dict(orient='records')
+
+        # Batch articles
+        batched_articles = [articles[i:i + self.batch_size] for i in range(0, len(articles), self.batch_size)]
+
+        # Log the number of batches
+        self.logger.info(f"Number of article batches to embed: {len(batched_articles)}")
+
         # Batch the articles
-        return [articles[i:i + self.batch_size] for i in range(0, len(articles), self.batch_size)]
+        return batched_articles
 
     def process_item(self, item: list) -> list:
         """
@@ -87,19 +92,44 @@ class EmbedArticlesTask(EutopiaTask):
         :param item: DOI for Crossref article
         :return: Record with publication metadata
         """
-        batch_articles = item
-        batch = [article['article_text'] for article in batch_articles]
+        # Start timer
+        start = time.time()
+
+        # Get the articles
+        document_batch = item
+        document_batch_embedding_inputs = [
+            self.tokenizer.sep_token.join([
+                document['article_title'] or '',
+                document['article_container_title'] or '',
+                document['article_abstract'] or '',
+                document['article_references'] or ''
+            ]) for document in document_batch
+        ]
 
         # Embed the articles
-        embeddings = self.embed_batch(batch=batch)
+        embeddings = self.embed_batch(batch=document_batch_embedding_inputs)
 
         # Combine the articles with the embeddings
-        for i, article in enumerate(batch_articles):
+        for i, article in enumerate(document_batch):
+            print(i)
             article['article_text_embedding'] = '{' + ','.join(map(str, embeddings[i].tolist())) + '}'
             # Pop article text key
-            article.pop('article_text', None)
+            article.pop('article_title', None)
+            article.pop('article_container_title', None)
+            article.pop('article_abstract', None)
+            article.pop('article_references', None)
 
-        return batch_articles
+        # Log the time taken
+        self.logger.debug(f"Time taken to embed batch: {time.time() - start:.2f} seconds")
+        return document_batch
+
+    def to_dataframe(self, iterable: list) -> pd.DataFrame:
+        """
+        Convert the iterable to a DataFrame
+        :param iterable: List of dictionaries
+        :return: DataFrame
+        """
+        return pd.DataFrame(iterable)
 
     def output(self):
         """

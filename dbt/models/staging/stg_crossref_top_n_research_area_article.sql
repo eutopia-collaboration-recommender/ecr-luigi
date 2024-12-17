@@ -27,11 +27,11 @@ WITH src_crossref_top_n_research_area_publication as (SELECT publication_doi,
                                      LATERAL JSONB_ARRAY_ELEMENTS(publication_metadata -> 'reference') AS r),
      publication_references_agg
          AS (SELECT publication_doi,
-                    STRING_AGG(
-                            COALESCE(', Article Title: ' || reference_article_title, '') ||
-                            COALESCE(', Author: ' || reference_article_author, '') ||
-                            COALESCE(', Unstructured: ' || reference_article_unstructured, '') ||
-                            COALESCE(', Journal Title: ' || reference_article_journal_title, '')
+                    STRING_AGG('Reference:' ||
+                               COALESCE(' ' || reference_article_title, '') ||
+                               COALESCE(' ' || reference_article_author, '') ||
+                               COALESCE(' ' || reference_article_unstructured, '') ||
+                               COALESCE(' ' || reference_article_journal_title, '')
                         , ', ') AS references
              FROM publication_references
              GROUP BY publication_doi),
