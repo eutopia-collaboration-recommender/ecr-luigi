@@ -48,6 +48,10 @@ def search_modified_records(access_token: str,
     :param num_rows: Number of rows to fetch
     """
 
+    # TODO: This code does not seem to ingest all the records for affiliation organization despite calling it with
+    #  different date ranges. I assume that some ORCID records do not contain data about last modified date.
+    # Try combining this with creation date to get all the records.
+
     # Define parameters that will be propagated to the query
     params = {
         'profile-last-modified-date': f'%5B{updated_date_start}%20TO%20{updated_date_end}%5D',
