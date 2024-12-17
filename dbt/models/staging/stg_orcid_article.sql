@@ -1,5 +1,5 @@
 WITH ref_stg_orcid_member_work AS (SELECT *
-                                   FROM {{ ref('stg_orcid_member_work') }})
+                                   FROM {{ source('lojze', 'orcid_member_works_parsed') }})
 SELECT DISTINCT article_id,
                 article_title,
                 article_journal_title,

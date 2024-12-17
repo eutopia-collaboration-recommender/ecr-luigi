@@ -41,6 +41,6 @@ SELECT member_id,
        organization_country,
        department_name,
        role_title,
-       {{ safe_make_date('start_year', 'start_month', 'start_day') }} AS start_date,
-       {{ safe_make_date('end_year', 'end_month', 'end_day') }}       AS end_date
+       {{ safe_make_date('start_year', 'start_month', 'start_day') }} AS start_dt,
+       {{ safe_make_date('end_year', 'end_month', 'end_day') }}       AS end_dt
 FROM member_employment

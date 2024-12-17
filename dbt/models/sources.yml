@@ -14,6 +14,8 @@ sources:
         description: "ORCID member person section containing external author identifiers."
       - name: orcid_member_works
         description: "ORCID member works section containing publication data."
+      - name: orcid_member_works_parsed
+        description: "ORCID member works section containing publication data - JSON parsed."
       - name: orcid_member_employments
         description: "ORCID member employments section containing affiliation data."
       - name: orcid_modified_member
