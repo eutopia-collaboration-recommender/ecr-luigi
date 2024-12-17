@@ -5,6 +5,7 @@ WITH src_crossref_top_n_research_area_publication as (SELECT publication_doi,
                                                              publication_metadata -> 'published' AS published_dt_json
                                                       FROM {{ source('lojze', 'crossref_top_n_research_area_publication')}}),
      publication_references AS (SELECT publication_doi,
+                                       cerif_research_area_code,
                                        r.value ->> 'key'             AS reference_article_key,
                                        r.value ->> 'DOI'             AS reference_article_doi,
                                        r.value ->> 'ISSN'            AS reference_article_issn,
@@ -35,6 +36,7 @@ WITH src_crossref_top_n_research_area_publication as (SELECT publication_doi,
              FROM publication_references
              GROUP BY publication_doi),
      publication_parsed AS (SELECT LOWER(c.publication_doi)                                                     AS article_doi
+                                 , cerif_research_area_code                                                     AS research_area_code
                                  , c.publication_metadata ->> 'URL'                                             AS article_url
                                  , c.publication_metadata ->> 'publisher'                                       AS article_publisher
                                  , JSONB_ARRAY_ELEMENTS_TEXT(c.publication_metadata -> 'title')                 AS article_title
@@ -54,6 +56,7 @@ WITH src_crossref_top_n_research_area_publication as (SELECT publication_doi,
                                      LEFT JOIN publication_references_agg r
                                                ON c.publication_doi = r.publication_doi)
 SELECT article_doi,
+       research_area_code,
        article_url,
        article_publisher,
        article_title,
