@@ -27,14 +27,14 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
 
     updated_date_start: str = luigi.OptionalParameter(
         description='Search start date',
-        default='2024-05-01'
+        default='2000-01-01'
         # default = time.strftime("%Y-%m-%d",
         #                     time.gmtime(time.time() - 7 * 24 * 60 * 60))
     )
 
     updated_date_end: str = luigi.OptionalParameter(
         description='Search end date',
-        default='2024-05-31'
+        default='2024-12-31'
         # default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
 
@@ -75,6 +75,7 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
             'publication_eid': safe_get(record, 'coredata.eid'),
             'publication_doi': safe_get(record, 'coredata.prism:doi'),
             'publication_title': safe_get(record, 'coredata.dc:title'),
+            'publication_journal': safe_get(record, 'coredata.prism:publicationName'),
             'publication_type': safe_get(record, 'coredata.prism:aggregationType'),
             'publication_abstract': safe_get(record, 'coredata.dc:description'),
             'publication_citation_count': safe_get(record, 'coredata.citedby-count'),

@@ -8,6 +8,7 @@ CREATE TABLE elsevier_publication
     publication_eid                  TEXT,
     publication_doi                  TEXT,
     publication_title                TEXT,
+    publication_journal              TEXT,
     publication_type                 TEXT,
     publication_abstract             TEXT,
     publication_citation_count       INT,
@@ -17,5 +18,5 @@ CREATE TABLE elsevier_publication
     publication_keywords             JSONB,
     publication_references           JSONB,
     row_created_at                   TIMESTAMP,
-    task_params_spec     TEXT
+    task_params_spec                 TEXT
 );
