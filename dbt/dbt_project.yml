@@ -31,6 +31,10 @@ models:
       +materialized: table
       +tags:
         - "data_ingestion"
+    marts:
+        +materialized: table
+        +tags:
+            - "data_ingestion"
     intermediate:
       +materialized: table
       +tags:
