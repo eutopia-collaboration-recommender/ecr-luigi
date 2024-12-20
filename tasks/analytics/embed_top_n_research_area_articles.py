@@ -65,7 +65,7 @@ class EmbedTopNResearchAreaArticlesTask(EutopiaTask):
                             s.article_container_title,
                             s.article_abstract,
                             s.article_references
-            FROM stg_crossref_top_n_research_area_publication s
+            FROM stg_crossref_top_n_research_area_article s
             LEFT JOIN top_n_research_area_article_text_embedding t 
                 ON S.article_doi = t.article_doi
             WHERE t.article_doi IS NULL

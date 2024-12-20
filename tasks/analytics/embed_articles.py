@@ -34,6 +34,17 @@ class EmbedArticlesTask(EutopiaTask):
         # Delete before execution
         self.delete_insert = False
 
+    updated_date_start: str = luigi.OptionalParameter(
+        description='Search start date',
+        default=time.strftime("%Y-%m-%d",
+                              time.gmtime(time.time() - 7 * 24 * 60 * 60))
+    )
+
+    updated_date_end: str = luigi.OptionalParameter(
+        description='Search end date',
+        default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
+    )
+
     def embed_batch(self, batch: list) -> Tensor:
         """
         Embed a batch of input texts using a transformer model.
@@ -62,10 +73,10 @@ class EmbedArticlesTask(EutopiaTask):
         query_str = f"""
             SELECT s.article_id,
                    s.article_title,
-                   s.article_container_title,
+                   s.article_journal_title,
                    s.article_abstract,
                    s.article_references
-            FROM stg_article s
+            FROM stg_mart_article s
             LEFT JOIN article_text_embedding t 
                 ON S.article_id = t.article_id
             WHERE t.article_id IS NULL
@@ -100,7 +111,7 @@ class EmbedArticlesTask(EutopiaTask):
         document_batch_embedding_inputs = [
             self.tokenizer.sep_token.join([
                 document['article_title'] or '',
-                document['article_container_title'] or '',
+                document['article_journal_title'] or '',
                 document['article_abstract'] or '',
                 document['article_references'] or ''
             ]) for document in document_batch
@@ -111,11 +122,10 @@ class EmbedArticlesTask(EutopiaTask):
 
         # Combine the articles with the embeddings
         for i, article in enumerate(document_batch):
-            print(i)
             article['article_text_embedding'] = '{' + ','.join(map(str, embeddings[i].tolist())) + '}'
             # Pop article text key
             article.pop('article_title', None)
-            article.pop('article_container_title', None)
+            article.pop('article_journal_title', None)
             article.pop('article_abstract', None)
             article.pop('article_references', None)
 
