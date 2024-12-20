@@ -18,3 +18,4 @@ FROM ref_stg_orcid_member_employment e
 WHERE w.article_publication_dt >= e.start_dt
   AND w.article_publication_dt <= e.end_dt
 
+

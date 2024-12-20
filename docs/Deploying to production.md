@@ -17,8 +17,13 @@
     ```bash
     ssh -i ~/.ssh/ssh-eucollab eucollab@193.2.72.43
     ```
-   
-
 
 ## MongoDB Setup
+```bash
 docker run -v .:/dump mongo mongorestore --gzip --uri "mongodb://root:rootpassword@mongo" mongodump.dump.gzip
+```
+
+
+```bash
+scp -r  -i ~\.ssh\ssh-eucollab ~\.dbt\ eucollab@193.2.72.43:~/
+```

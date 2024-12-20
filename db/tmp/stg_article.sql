@@ -30,27 +30,27 @@ WITH ref_orcid_article AS (SELECT *
                                      ON c.article_doi = main.article_doi
                            LEFT JOIN ref_orcid_article o
                                      ON o.article_eid = main.article_eid
-{#                  UNION ALL#}
-{#                  SELECT main.article_id,#}
-{#                         main.article_doi,#}
-{#                         main.article_eid,#}
-{#                         c.article_publisher,#}
-{#                         COALESCE(c.article_title, main.article_title)                   AS article_title,#}
-{#                         c.article_short_title,#}
-{#                         c.article_subtitle,#}
-{#                         c.article_original_title,#}
-{#                         COALESCE(c.article_container_title, main.article_journal_title) AS article_container_title,#}
-{#                         c.article_short_container_title,#}
-{#                         c.article_abstract                                              AS article_abstract,#}
-{#                         null                                                            AS article_keywords,#}
-{#                         COALESCE(c.article_publication_dt,#}
-{#                                  main.article_publication_dt)                           AS article_publication_dt,#}
-{#                         c.article_references                                            AS article_references,#}
-{#                         'orcid'                                                         AS article_source,#}
-{#                         ROW_NUMBER() OVER (PARTITION BY main.article_id)                as rn#}
-{#                  FROM orcid_without_elsevier main#}
-{#                           LEFT JOIN ref_crossref_article c#}
-{#                                     ON c.article_doi = main.article_doi#}
+                  UNION ALL
+                  SELECT main.article_id,
+                         main.article_doi,
+                         main.article_eid,
+                         c.article_publisher,
+                         COALESCE(c.article_title, main.article_title)                   AS article_title,
+                         c.article_short_title,
+                         c.article_subtitle,
+                         c.article_original_title,
+                         COALESCE(c.article_container_title, main.article_journal_title) AS article_container_title,
+                         c.article_short_container_title,
+                         c.article_abstract                                              AS article_abstract,
+                         null                                                            AS article_keywords,
+                         COALESCE(c.article_publication_dt,
+                                  main.article_publication_dt)                           AS article_publication_dt,
+                         c.article_references                                            AS article_references,
+                         'orcid'                                                         AS article_source,
+                         ROW_NUMBER() OVER (PARTITION BY main.article_id)                as rn
+                  FROM orcid_without_elsevier main
+                           LEFT JOIN ref_crossref_article c
+                                     ON c.article_doi = main.article_doi
                   )
 SELECT article_id,
        article_doi,

@@ -24,6 +24,7 @@ BEGIN
         AND
            udf_to_date_from_crossref_json(publication_metadata -> 'message' -> 'indexed') BETWEEN date_start AND date_end);
 
+
     /*Table: temp_crossref_publication
       Select and parse publication metadata for the selected DOIs. Only article data, not authors and affiliations.
     */
@@ -65,43 +66,35 @@ BEGIN
            c.article_short_container_title,
            c.article_abstract,
            c.article_referenced_by_count,
-           a.value ->> 'sequence'                                       AS author_sequence,
-           CONCAT(
-                   COALESCE(a.value ->> 'given' || ' ', ''),
-                   COALESCE(a.value ->> 'family', '')
-           )                                                            AS author_full_name,
-           (REGEXP_MATCHES(a.value ->> 'ORCID',
-                           '([0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4})'))[1] AS author_orcid,
-           a.value -> 'affiliation'                                     AS author_affiliation,
+           a.value -> 'affiliation' AS author_affiliation,
            c.indexed_dt,
            c.published_dt
-    FROM temp_crossref_publication c,
-         LATERAL JSONB_ARRAY_ELEMENTS(c.article_authors) AS a;
+    FROM temp_crossref_publication c
+             LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(c.article_authors) AS a ON TRUE;
+
+
     /*Table: temp_crossref_publication_parsed
         Parse affiliations for the selected DOIs. This represents the final table with all the parsed data.
     */
     DROP TABLE IF EXISTS temp_crossref_publication_parsed;
     CREATE TEMP TABLE temp_crossref_publication_parsed AS
-    SELECT c.article_doi,
-           c.article_url,
-           c.article_institution,
-           c.article_publisher,
-           c.article_title,
-           c.article_short_title,
-           c.article_subtitle,
-           c.article_original_title,
-           c.article_container_title,
-           c.article_short_container_title,
-           c.article_abstract,
-           c.indexed_dt       AS article_indexed_dt,
-           c.published_dt     AS article_publication_dt,
-           c.article_referenced_by_count,
-           c.author_full_name,
-           c.author_orcid,
-           c.author_sequence,
-           a.value ->> 'name' AS affiliation_identifier
-    FROM temp_crossref_publication_authors c,
-         LATERAL JSONB_ARRAY_ELEMENTS(c.author_affiliation) AS a;
+    SELECT DISTINCT c.article_doi,
+                    c.article_url,
+                    c.article_institution,
+                    c.article_publisher,
+                    c.article_title,
+                    c.article_short_title,
+                    c.article_subtitle,
+                    c.article_original_title,
+                    c.article_container_title,
+                    c.article_short_container_title,
+                    c.article_abstract,
+                    c.indexed_dt       AS article_indexed_dt,
+                    c.published_dt     AS article_publication_dt,
+                    c.article_referenced_by_count,
+                    a.value ->> 'name' AS affiliation_identifier
+    FROM temp_crossref_publication_authors c
+             LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(c.author_affiliation) AS a ON TRUE;
 
     INSERT INTO crossref_publication_parsed
     (article_doi,
@@ -118,9 +111,6 @@ BEGIN
      article_indexed_dt,
      article_publication_dt,
      article_referenced_by_count,
-     author_full_name,
-     author_orcid,
-     author_sequence,
      affiliation_identifier)
     SELECT article_doi,
            article_url,
@@ -136,9 +126,6 @@ BEGIN
            article_indexed_dt,
            article_publication_dt,
            article_referenced_by_count,
-           author_full_name,
-           author_orcid,
-           author_sequence,
            affiliation_identifier
     FROM temp_crossref_publication_parsed;
 END;

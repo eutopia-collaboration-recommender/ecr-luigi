@@ -18,9 +18,6 @@ CREATE TABLE crossref_publication_parsed
     article_indexed_dt            DATE,
     article_publication_dt        DATE,
     article_referenced_by_count   INT,
-    author_full_name              TEXT,
-    author_orcid                  TEXT,
-    author_sequence               TEXT,
     affiliation_identifier        TEXT,
     row_created_at                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
