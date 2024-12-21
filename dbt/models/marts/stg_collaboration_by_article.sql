@@ -7,7 +7,8 @@ WITH ref_stg_mart_collaboration AS (SELECT article_id,
                                      article_publication_dt
                               FROM {{ ref('stg_mart_article') }}),
      is_single_author_collaboration AS (SELECT article_id,
-                                               COUNT(DISTINCT author_id) = 1 AS is_single_author_collaboration
+                                               COUNT(DISTINCT author_id) = 1 AND
+                                                   COUNT(DISTINCT institution_id) = 1 AS is_single_author_collaboration
                                         FROM ref_stg_mart_collaboration
                                         GROUP BY article_id),
      is_internal_collaboration AS (SELECT article_id,
@@ -16,13 +17,11 @@ WITH ref_stg_mart_collaboration AS (SELECT article_id,
                                    FROM ref_stg_mart_collaboration
                                    GROUP BY article_id),
      is_external_collaboration AS (SELECT article_id,
-                                          COUNT(DISTINCT author_id) > 1
-                                              AND COUNT(DISTINCT institution_id) > 1 AS is_external_collaboration
+                                          COUNT(DISTINCT institution_id) > 1 AS is_external_collaboration
                                    FROM ref_stg_mart_collaboration
                                    GROUP BY article_id),
      is_eutopia_collaboration AS (SELECT article_id,
-                                         COUNT(DISTINCT author_id) > 1
-                                             AND COUNT(DISTINCT institution_id) > 1 AS is_eutopia_collaboration
+                                         COUNT(DISTINCT institution_id) > 1 AS is_eutopia_collaboration
                                   FROM ref_stg_mart_collaboration
                                   WHERE institution_id NOT IN ('n/a', 'OTHER')
                                   GROUP BY article_id)

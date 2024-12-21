@@ -111,10 +111,10 @@ class EutopiaTask(luigi.Task):
                 results.extend(result)
             # Append the processed item to the results list if it is not a list
             else:
-                results.append(self.process_item(item=item))
+                results.append(result)
 
             # Skip first iteration
-            if ix == 0:
+            if ix == 0 and self.num_records_to_checkpoint > 1:
                 continue
             else:
                 # Print progress

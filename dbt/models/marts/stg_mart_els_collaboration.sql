@@ -10,8 +10,8 @@ WITH ref_elsevier_publication_parsed AS (SELECT article_id,
                                          FROM {{ source('lojze', 'crossref_publication_parsed') }})
 SELECT p.article_id,
        p.author_id,
-       i.institution_id,
-       cr.article_doi AS crossref_article_doi
+       COALESCE(i.institution_id, 'OTHER') AS institution_id,
+       cr.article_doi                      AS crossref_article_doi
 FROM ref_elsevier_publication_parsed p
          LEFT JOIN ref_stg_elsevier_affiliation i
                    ON p.article_id = i.article_id

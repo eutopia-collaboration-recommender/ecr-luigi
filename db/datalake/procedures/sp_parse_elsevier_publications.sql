@@ -1,3 +1,4 @@
+
 SET SEARCH_PATH TO jezero;
 
 CREATE OR REPLACE PROCEDURE sp_parse_elsevier_publications(date_start DATE, date_end DATE)
@@ -29,6 +30,7 @@ BEGIN
            e.publication_authors        AS article_authors
     FROM elsevier_publication e
     WHERE e.publication_dt BETWEEN date_start AND date_end;
+
     /* TABLE: temp_elsevier_publication_authors
     Parse Elsevier publication authors and store their affiliations.
      */
@@ -44,15 +46,16 @@ BEGIN
            e.article_citation_count,
            e.article_publication_dt,
            e.article_references,
-           a.value ->> 'author_id'             AS author_id,
-           a.value ->> 'author_initials'       AS author_initials,
-           a.value ->> 'author_last_name'      AS author_last_name,
-           a.value ->> 'author_first_name'     AS author_first_name,
-           a.value ->> 'author_indexed_name'   AS author_indexed_name,
-           a.value ->> 'is_first_author'       AS is_first_author,
-           a.value -> 'author_affiliation_ids' AS author_affiliations
+           a.value ->> 'author_id'                  AS author_id,
+           a.value ->> 'author_initials'            AS author_initials,
+           a.value ->> 'author_last_name'           AS author_last_name,
+           a.value ->> 'author_first_name'          AS author_first_name,
+           a.value ->> 'author_indexed_name'        AS author_indexed_name,
+           CAST(a.value ->> 'is_first_author' AS BOOL) AS is_first_author,
+           a.value -> 'author_affiliation_ids'      AS author_affiliations
     FROM temp_elsevier_publication e
              LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(e.article_authors) AS a ON TRUE;
+
     /* TABLE: temp_elsevier_publication_affiliations
     Parse Elsevier publication affiliations.
      */
@@ -118,7 +121,6 @@ BEGIN
              LEFT JOIN temp_elsevier_publication_keywords k
                        ON e.article_id = k.publication_id;
 
-
     INSERT INTO elsevier_publication_parsed (article_id,
                                              article_eid,
                                              article_doi,
@@ -157,12 +159,11 @@ BEGIN
 END;
 $$;
 
-CALL sp_parse_elsevier_publications('2020-01-01', '2020-12-31');
 
 DO
 $do$
     BEGIN
-        FOR i in 2021..2024
+        FOR i in 2000..2024
             LOOP
                 CALL sp_parse_elsevier_publications(CONCAT(i, '-01-01')::DATE, CONCAT(i, '-12-31')::DATE);
                 RAISE NOTICE 'Parsed Elsevier publications for year: %', i;

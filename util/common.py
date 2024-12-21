@@ -1,6 +1,17 @@
 import re
 
 
+def element_in_flattened_list(element: str,
+                              list_of_lists: list) -> bool:
+    """
+    Check if an element is in a list of lists.
+    :param element: Element to check.
+    :param list_of_lists: List of lists to check.
+    :return: True if the element is in the list of lists, False otherwise.
+    """
+    return any(element in sublist for sublist in list_of_lists)
+
+
 def to_snake_case(_string: str):
     """
     Convert a string to snake case
