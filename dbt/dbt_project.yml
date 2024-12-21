@@ -31,11 +31,13 @@ models:
       +materialized: table
       +tags:
         - "data_ingestion"
+        - "staging"
     marts:
-        +materialized: table
-        +tags:
-            - "data_ingestion"
-    intermediate:
       +materialized: table
       +tags:
         - "data_ingestion"
+        - "mart"
+    intermediate:
+      +materialized: table
+      +tags:
+        - "intermediate"

@@ -49,6 +49,7 @@ BEGIN
            a.value ->> 'author_last_name'      AS author_last_name,
            a.value ->> 'author_first_name'     AS author_first_name,
            a.value ->> 'author_indexed_name'   AS author_indexed_name,
+           a.value ->> 'is_first_author'       AS is_first_author,
            a.value -> 'author_affiliation_ids' AS author_affiliations
     FROM temp_elsevier_publication e
              LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(e.article_authors) AS a ON TRUE;
@@ -72,6 +73,7 @@ BEGIN
            e.author_last_name,
            e.author_first_name,
            e.author_indexed_name,
+           e.is_first_author,
            af.value ->> 'id' AS affiliation_id
     FROM temp_elsevier_publication_authors e
              LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(e.author_affiliations) AS af ON TRUE;
@@ -109,6 +111,7 @@ BEGIN
            e.author_last_name,
            e.author_first_name,
            e.author_indexed_name,
+           e.is_first_author,
            e.affiliation_id,
            k.publication_keywords AS article_keywords
     FROM temp_elsevier_publication_affiliations e
@@ -130,6 +133,7 @@ BEGIN
                                              author_last_name,
                                              author_first_name,
                                              author_indexed_name,
+                                             is_first_author,
                                              affiliation_id,
                                              article_keywords)
     SELECT article_id,
@@ -146,6 +150,7 @@ BEGIN
            author_last_name,
            author_first_name,
            author_indexed_name,
+           is_first_author,
            affiliation_id,
            article_keywords
     FROM temp_elsevier_publication_parsed;

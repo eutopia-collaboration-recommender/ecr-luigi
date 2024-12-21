@@ -12,6 +12,7 @@ SELECT DISTINCT p.article_doi,
                 p.article_short_container_title,
                 p.article_abstract,
                 p.article_publication_dt,
+                p.article_referenced_by_count AS article_citation_count,
                 r.article_references
 FROM src_crossref_publication p
          LEFT JOIN ref_crossref_publication_reference r

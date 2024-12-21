@@ -18,6 +18,7 @@ CREATE TABLE elsevier_publication_parsed
     author_last_name       TEXT,
     author_first_name      TEXT,
     author_indexed_name    TEXT,
+    is_first_author        BOOLEAN,
     affiliation_id         TEXT,
     article_keywords       TEXT,
     row_created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP

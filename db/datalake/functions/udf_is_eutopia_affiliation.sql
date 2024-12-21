@@ -34,8 +34,6 @@ BEGIN
                            WHEN LOWER(affiliation_identifier) LIKE '%babes%'
                                OR LOWER(affiliation_identifier) LIKE '%bolyai%' THEN
                                'UBBCLUJ'
-                           WHEN affiliation_identifier IS NULL THEN
-                               'n/a'
                            ELSE
                                'OTHER'
             END;

@@ -10,6 +10,7 @@ SELECT DISTINCT p.article_id,
                 p.article_journal,
                 p.article_abstract,
                 p.article_keywords,
+                p.article_citation_count,
                 p.article_publication_dt,
                 r.article_references
 FROM src_elsevier_publication p

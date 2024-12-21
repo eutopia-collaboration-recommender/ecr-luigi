@@ -1,10 +1,8 @@
 WITH ref_elsevier_publication_parsed AS (SELECT article_id,
                                                 article_doi,
                                                 author_id,
-                                                affiliation_id,
-                                                article_abstract
-                                         FROM {{ source('lojze', 'elsevier_publication_parsed') }}
-                                         WHERE article_abstract IS NULL),
+                                                affiliation_id
+                                         FROM {{ source('lojze', 'elsevier_publication_parsed') }}),
      ref_stg_elsevier_affiliation AS (SELECT article_id,
                                              institution_id
                                       FROM {{ ref('stg_elsevier_affiliation') }}),

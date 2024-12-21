@@ -1,21 +1,13 @@
-WITH ref_stg_mart_els_core_article AS (SELECT article_id,
-                                              article_doi,
-                                              article_eid,
-                                              article_title,
-                                              article_journal_title,
-                                              article_abstract,
-                                              article_references,
-                                              article_publication_dt
-                                       FROM {{ ref('stg_mart_els_core_article') }}),
-     ref_stg_mart_els_enh_article AS (SELECT article_id,
-                                             article_doi,
-                                             article_eid,
-                                             article_title,
-                                             article_journal_title,
-                                             article_abstract,
-                                             article_references,
-                                             article_publication_dt
-                                      FROM {{ ref('stg_mart_els_enh_article') }}),
+WITH ref_stg_mart_els_article AS (SELECT article_id,
+                                         article_doi,
+                                         article_eid,
+                                         article_title,
+                                         article_journal_title,
+                                         article_abstract,
+                                         article_references,
+                                         article_citation_count,
+                                         article_publication_dt
+                                  FROM {{ ref("stg_mart_els_article") }}),
      ref_stg_mart_orcid_article AS (SELECT article_id,
                                            article_doi,
                                            article_eid,
@@ -23,13 +15,11 @@ WITH ref_stg_mart_els_core_article AS (SELECT article_id,
                                            article_journal_title,
                                            article_abstract,
                                            article_references,
+                                           article_citation_count,
                                            article_publication_dt
                                     FROM {{ ref('stg_mart_orcid_article') }}),
      merged AS (SELECT *
-                FROM ref_stg_mart_els_core_article
-                UNION ALL
-                SELECT *
-                FROM ref_stg_mart_els_enh_article
+                FROM ref_stg_mart_els_article
                 UNION ALL
                 SELECT *
                 FROM ref_stg_mart_orcid_article)
@@ -46,6 +36,8 @@ SELECT DISTINCT article_id,
                     ORDER BY CASE WHEN article_abstract IS NOT NULL THEN 1 ELSE 0 END DESC, article_abstract DESC)             AS article_abstract,
                 FIRST_VALUE(article_references) OVER (PARTITION BY article_id
                     ORDER BY CASE WHEN article_references IS NOT NULL THEN 1 ELSE 0 END DESC, article_references DESC)         AS article_references,
+                FIRST_VALUE(article_citation_count) OVER (PARTITION BY article_id
+                    ORDER BY CASE WHEN article_citation_count IS NOT NULL THEN 1 ELSE 0 END DESC, article_citation_count DESC) AS article_citation_count,
                 FIRST_VALUE(article_publication_dt) OVER (PARTITION BY article_id
                     ORDER BY CASE WHEN article_publication_dt IS NOT NULL THEN 1 ELSE 0 END DESC, article_publication_dt DESC) AS article_publication_dt
 FROM merged
