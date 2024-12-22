@@ -114,7 +114,7 @@ class GenerateArticleKeywordsTask(EutopiaTask):
         # Log the time taken
         return dict(
             article_id=document['article_id'],
-            article_keywords='{' + keywords + '}'
+            article_keywords_arr='{' + keywords + '}'
         )
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:

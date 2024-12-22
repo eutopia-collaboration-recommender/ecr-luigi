@@ -47,3 +47,26 @@ def query_top_n_by_keyword(base_url: str,
         publication_doi=article['DOI'],
         publication_metadata=json.dumps(article)
     ) for article in response.get("message")['items']][:n]
+
+
+def query_keyword_trend(base_url: str,
+                        params: dict,
+                        keyword: str,
+                        start_year: int,
+                        end_year: int) -> list:
+    trend_data = []
+    for year in range(start_year, end_year + 1):
+        params['query'] = keyword
+        params['filter'] = f"from-pub-date:{year},until-pub-date:{year}"
+        params['rows'] = 0  # Retrieve only metadata count, not detailed data
+
+        response = crossref_request(base_url, params)
+
+        if response['status'] == 'ok':
+            total_results = response["message"]["total-results"]
+            trend_data.append({"article_keyword": keyword, "year": year, "publication_count": total_results})
+        else:
+            print(f"Error fetching data for {year}: {response['status']}")
+            trend_data.append({"article_keyword": keyword, "year": year, "publication_count": None})
+
+    return trend_data

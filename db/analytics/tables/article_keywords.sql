@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS article_keywords;
 
 CREATE TABLE article_keywords
 (
-    article_id       TEXT,
-    article_keywords TEXT[],
-    row_created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    article_id           TEXT,
+    article_keywords_arr TEXT[],
+    row_created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
