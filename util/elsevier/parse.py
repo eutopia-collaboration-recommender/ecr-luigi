@@ -34,14 +34,19 @@ def parse_authors(record: dict) -> list:
     if record is None:
         return []
     # In some cases the authors are stored in a separate field while by default they are stored in the 'dc:creator' field
-    if 'authors' in record:
-        authors = safe_get(record, 'authors.author', default=[])
-    else:
-        authors = safe_get(record, 'coredata.dc:creator', default=[])
 
+    authors = safe_get(record, 'coredata.dc:creator.author', default=[])
+    if type(authors) is dict:
+        authors = [authors]
+    if 'authors' in record:
+        authors_additional = safe_get(record, 'authors.author', default=[])
+        if type(authors_additional) is dict:
+            authors.append(authors_additional)
+        else:
+            authors.extend(authors_additional)
     # Iterate over the authors and extract the author ID and name
     results = []
-    for author in authors:
+    for ix, author in enumerate(authors):
         # Check if the author has an affiliation
         if 'affiliation' not in author:
             affiliations = []
@@ -54,14 +59,18 @@ def parse_authors(record: dict) -> list:
         # Process affiliations
         affiliation_ids = [{'id': affiliation['@id']} for affiliation in affiliations]
         try:
-            results.append({
-                'author_id': safe_get(author, '@auid'),
-                'author_first_name': safe_get(author, 'ce:given-name'),
-                'author_last_name': safe_get(author, 'ce:surname'),
-                'author_indexed_name': safe_get(author, 'ce:indexed-name'),
-                'author_initials': safe_get(author, 'ce:initials'),
-                'author_affiliation_ids': affiliation_ids
-            })
+            author_id = safe_get(author, '@auid')
+            # Check if author is already in the list
+            if not any(author_id == a['author_id'] for a in results):
+                results.append({
+                    'author_id': safe_get(author, '@auid'),
+                    'author_first_name': safe_get(author, 'ce:given-name'),
+                    'author_last_name': safe_get(author, 'ce:surname'),
+                    'author_indexed_name': safe_get(author, 'ce:indexed-name'),
+                    'author_initials': safe_get(author, 'ce:initials'),
+                    'is_first_author': safe_get(author, '@seq') == '1' or safe_get(author, '@seq') is None and ix == 0,
+                    'author_affiliation_ids': affiliation_ids
+                })
         except KeyError:
             print(f"Error for author: {author}")
 
