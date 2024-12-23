@@ -120,8 +120,7 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
                      LEFT JOIN article_research_area t
                                ON S.article_id = t.article_id
             WHERE t.article_id IS NULL
-            LIMIT {self.batch_size}
-            OFFSET {offset}
+            LIMIT {self.batch_size}f
         """
         # Fetch the DOIs from the PostgreSQL database
         df = query(conn=self.pg_connection,
