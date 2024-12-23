@@ -68,6 +68,7 @@ def parse_authors(record: dict) -> list:
                     'author_last_name': safe_get(author, 'ce:surname'),
                     'author_indexed_name': safe_get(author, 'ce:indexed-name'),
                     'author_initials': safe_get(author, 'ce:initials'),
+                    'author_sequence': safe_get(author, '@seq') or ix,
                     'is_first_author': safe_get(author, '@seq') == '1' or safe_get(author, '@seq') is None and ix == 0,
                     'author_affiliation_ids': affiliation_ids
                 })
