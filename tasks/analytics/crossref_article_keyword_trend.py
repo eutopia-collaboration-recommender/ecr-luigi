@@ -18,7 +18,7 @@ class CrossrefArticleKeywordTrend(CrossrefTask):
         self.pg_target_table_name = 'article_keyword_trend'
         self.pg_target_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA
-        self.min_year = self.config.KEYWORDS.MIN_YEAR
+        self.min_year = self.config.MIN_YEAR
         self.max_year = time.gmtime(time.time()).tm_year
         self.delete_insert = False
 

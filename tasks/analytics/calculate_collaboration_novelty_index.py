@@ -23,8 +23,8 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.batch_size = self.config.COLLABORATION_NOVELTY.BATCH_SIZE
-        self.min_year = self.config.COLLABORATION_NOVELTY.MIN_YEAR
+        self.batch_size = self.config.BATCH_SIZE.LARGE
+        self.min_year = self.config.MIN_YEAR
         # Postgres settings
         self.pg_target_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA

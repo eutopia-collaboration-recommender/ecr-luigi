@@ -17,7 +17,7 @@ class OrcidTask(EutopiaTask):
         # Note: The config file should be stored in the same directory where script is executed
         self.client_id = self.config.ORCID.CLIENT_ID
         self.client_secret = self.config.ORCID.CLIENT_SECRET
-        self.num_rows = self.config.ORCID.NUM_ROWS_PER_PAGE
+        self.num_rows = self.config.BATCH_SIZE.SMALL
         # Rate limiting settings
         self.request_limit = 12  # Maximum requests per second (it's actually 24 requests per second, but we are conservative)
         self.request_window = 1  # Time window in seconds

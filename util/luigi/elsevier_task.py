@@ -21,7 +21,7 @@ class ElsevierTask(EutopiaTask):
         # Access the MongoDB database
         self.mongo_db = self.mongo_client[self.config.MONGODB.DATABASE]
         # Set window size for batch processing
-        self.mongo_batch_size = self.config.MONGODB.BATCH_SIZE
+        self.mongo_batch_size = self.config.BATCH_SIZE.SMALL
         # Number of records to checkpoint
         self.num_records_to_checkpoint = self.config.CROSSREF.NUM_RECORDS_TO_CHECKPOINT
 

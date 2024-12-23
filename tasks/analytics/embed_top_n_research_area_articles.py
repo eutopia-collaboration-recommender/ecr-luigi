@@ -25,7 +25,7 @@ class EmbedTopNResearchAreaArticlesTask(EutopiaTask):
         self.pg_target_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA
         self.num_records_to_checkpoint = self.config.TEXT_EMBEDDING.NUM_RECORDS_TO_CHECKPOINT
-        self.batch_size = self.config.TEXT_EMBEDDING.BATCH_SIZE
+        self.batch_size = self.config.BATCH_SIZE.EMBEDDING
         # Load the model and tokenizer
         self.model = AutoAdapterModel.from_pretrained('allenai/specter2_base')
         self.model.load_adapter("allenai/specter2", source="hf", load_as="specter2", set_active=True)
