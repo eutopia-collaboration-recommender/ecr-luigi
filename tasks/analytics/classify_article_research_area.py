@@ -20,7 +20,7 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
         self.pg_target_table_name = 'article_research_area'
         self.pg_target_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA
-        self.batch_size = self.config.BATCH_SIZE.MEDIUM
+        self.batch_size = self.config.BATCH_SIZE.LARGE
 
         # Delete before execution
         self.delete_insert = False
