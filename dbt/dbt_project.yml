@@ -41,3 +41,13 @@ models:
       +materialized: table
       +tags:
         - "intermediate"
+        - "analytics"
+    analytics:
+      +materialized: table
+      +tags:
+        - "analytics"
+    final:
+      +materialized: table
+      +tags:
+        - "final"
+        - "analytics"

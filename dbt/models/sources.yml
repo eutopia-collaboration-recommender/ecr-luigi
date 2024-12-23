@@ -32,3 +32,18 @@ sources:
         description: "Elsevier publications parsed."
       - name: elsevier_publication_affiliation
         description: "Elsevier publication affiliations."
+  - name: analitik
+    description: "Data warehouse containing processed data from API sources."
+    database: lojze
+    schema: analitik
+    tables:
+      - name: article_research_area
+        description: "Article research areas."
+      - name: collaboration_novelty_index
+        description: "Collaboration novelty index."
+      - name: collaboration_novelty_metadata
+        description: "Collaboration novelty metadata."
+      - name: article_keywords
+        description: "Article keywords."
+      - name: article_language
+        description: "Article language."
