@@ -1,5 +1,6 @@
 import time
-
+from time import sleep
+import re
 import luigi
 import pandas as pd
 import torch.nn.functional as F
@@ -21,7 +22,7 @@ def prompt(article_description: str) -> str:
     When selecting keywords, prioritize terms or phrases that are widely recognized, commonly used, and broadly relevant within the academic domain, rather than highly specific or unique terms. 
     Limit the selection to the top 5 most relevant and general keywords or key phrases that summarize the main topics, themes, or concepts. 
     Format the result as a comma-separated list. All keywords should be in English, lowercase and abbreviations should be spelled out.
-    Do not include any explanations or additional content. 
+    You are not allowed to include any kind of explanations, notes or any additional content in the output besides the keywords themselves.  
 
     Input Text: {article_description}
 
@@ -39,7 +40,7 @@ class GenerateArticleKeywordsTask(EutopiaTask):
         self.pg_target_table_name = 'article_keywords'
         self.pg_target_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA
-        self.num_records_to_checkpoint = self.config.KEYWORDS.NUM_RECORDS_TO_CHECKPOINT
+        self.num_records_to_checkpoint = self.config.BATCH_SIZE.SMALL
         # Load the Ollama model
         self.ollama = Ollama(
             base_url=self.config.OLLAMA.HOST,
@@ -111,10 +112,21 @@ class GenerateArticleKeywordsTask(EutopiaTask):
             prompt(article_description=document_inputs)
         )
 
-        # Log the time taken
+        # Clean the keywords
+        keywords = keywords.strip().lstrip('[').rstrip(']')
+        keywords = keywords.lstrip('{').rstrip('}')
+        keywords = [keyword.strip() for keyword in keywords.split(',')]
+        keywords = ', '.join(keywords)
+        keywords = '{' + keywords + '}'
+        if re.search(r'[\r\n]', keywords):
+            # Log the issue
+            self.logger.error(f"Keywords contain newline characters: {keywords}")
+            # Reset the keywords
+            keywords = '{}'
+
         return dict(
             article_id=document['article_id'],
-            article_keywords_arr='{' + keywords + '}'
+            article_keywords_arr=keywords
         )
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
