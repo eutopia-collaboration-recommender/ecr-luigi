@@ -117,7 +117,7 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
             SELECT s.article_id,
                    s.article_text_embedding
             FROM article_text_embedding s
-                     LEFT JOIN article_language t
+                     LEFT JOIN article_research_area t
                                ON S.article_id = t.article_id
             WHERE t.article_id IS NULL
             LIMIT {self.batch_size}
