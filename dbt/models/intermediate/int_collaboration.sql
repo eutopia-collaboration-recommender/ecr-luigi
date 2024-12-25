@@ -26,3 +26,4 @@ FROM ref_stg_mart_collaboration c
                    ON c.article_id = cn.article_id
                        AND c.author_id = cn.author_id
                        AND c.institution_id = cn.institution_id
+WHERE article_publication_dt >= '2000-01-01'

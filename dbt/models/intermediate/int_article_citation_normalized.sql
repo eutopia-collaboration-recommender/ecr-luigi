@@ -21,12 +21,12 @@ WITH ref_stg_mart_article AS (SELECT article_id,
                                                      ON a.article_id = r.article_id)
 SELECT a.article_id,
        a.article_citation_count,
-       CASE
-           WHEN c.article_citation_count IS NULL
-               OR c.article_citation_count = 0
-               OR c.article_citation_count = 1 THEN a.article_citation_count
-           ELSE a.article_citation_count / LOG(c.article_citation_count)
-           END AS article_citation_normalized_count
+       ROUND(CASE
+                 WHEN c.article_citation_count IS NULL
+                     OR c.article_citation_count = 0
+                     OR c.article_citation_count = 1 THEN a.article_citation_count::NUMERIC
+                 ELSE (a.article_citation_count / LOG(c.article_citation_count))::NUMERIC
+                 END, 2) AS article_citation_normalized_count
 FROM article_by_research_area a
          LEFT JOIN article_citation_by_research_area c
                    ON a.publication_year = c.publication_year
