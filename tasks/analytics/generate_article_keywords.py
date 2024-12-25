@@ -106,23 +106,30 @@ class GenerateArticleKeywordsTask(EutopiaTask):
             document['article_abstract'] or '',
             document['article_references'] or ''
         ])
+        try:
+            # Prompt the user for keywords
+            keywords = self.ollama.invoke(
+                prompt(article_description=document_inputs)
+            )
+            # Clean the keywords
+            keywords = keywords.strip().lstrip('[').rstrip(']')
+            keywords = keywords.replace('{', '')
+            keywords = keywords.replace('}', '')
+            keywords = [keyword.strip() for keyword in keywords.split(',')]
+            keywords = ', '.join(keywords)
+            keywords
+            keywords = '{' + keywords + '}'
+            if re.search(r'[\r\n]', keywords):
+                # Log the issue
+                self.logger.error(f"Keywords contain newline characters: {keywords}")
+                # Reset the keywords
+                keywords = '{}'
 
-        # Prompt the user for keywords
-        keywords = self.ollama.invoke(
-            prompt(article_description=document_inputs)
-        )
-
-        # Clean the keywords
-        keywords = keywords.strip().lstrip('[').rstrip(']')
-        keywords = keywords.lstrip('{').rstrip('}')
-        keywords = [keyword.strip() for keyword in keywords.split(',')]
-        keywords = ', '.join(keywords)
-        keywords = '{' + keywords + '}'
-        if re.search(r'[\r\n]', keywords):
-            # Log the issue
-            self.logger.error(f"Keywords contain newline characters: {keywords}")
-            # Reset the keywords
+        # If we get a ValueError, sleep for 5 seconds and try again
+        except ValueError as e:
             keywords = '{}'
+            self.logger.error(f"Error generating keywords: {e}")
+            sleep(30)
 
         return dict(
             article_id=document['article_id'],
