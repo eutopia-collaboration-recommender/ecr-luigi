@@ -43,7 +43,11 @@ sources:
         description: "Collaboration novelty index."
       - name: collaboration_novelty_metadata
         description: "Collaboration novelty metadata."
+      - name: new_author_pair
+        description: "New author pair."
       - name: article_keywords
         description: "Article keywords."
+      - name: article_keyword_trend
+        description: "Article keyword trend."
       - name: article_language
         description: "Article language."
