@@ -32,7 +32,7 @@ def query_collaboration_novelty_num_batches(conn: psycopg2.extensions.connection
                  AS (SELECT COUNT(DISTINCT article_id) AS n
                      FROM collaboration_by_article)
         /* Get the number of batches */
-        SELECT CEIL(n / {batch_size}) AS n_batches
+        SELECT CEIL(n / {batch_size}::FLOAT) AS n_batches
         FROM num_articles
     """
 

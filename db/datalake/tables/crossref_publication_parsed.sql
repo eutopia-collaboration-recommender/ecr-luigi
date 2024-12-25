@@ -21,6 +21,7 @@ CREATE TABLE crossref_publication_parsed
     author_given_name             TEXT,
     author_family_name            TEXT,
     author_sequence               TEXT,
+    author_sequence_index         INT,
     author_orcid                  TEXT,
     affiliation_identifier        TEXT,
     row_created_at                TIMESTAMP DEFAULT CURRENT_TIMESTAMP

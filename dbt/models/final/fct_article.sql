@@ -7,7 +7,7 @@ WITH ref_stg_mart_collaboration_by_article AS (SELECT *
      ref_stg_collaboration_novelty_index AS (SELECT *
                                              FROM {{ ref('stg_collaboration_novelty_index') }})
 SELECT c.article_id,
-       r.research_area_code,
+       COALESCE(r.research_area_code, 'n/a')      AS research_area_code,
        n.article_citation_count,
        n.article_citation_normalized_count,
        c.article_publication_dt,
@@ -15,7 +15,7 @@ SELECT c.article_id,
        c.is_single_author_collaboration,
        c.is_internal_collaboration,
        c.is_external_collaboration,
-       i.collaboration_novelty_index
+       COALESCE(i.collaboration_novelty_index, 0) AS collaboration_novelty_index
 FROM ref_stg_mart_collaboration_by_article c
          LEFT JOIN ref_stg_article_research_area r
                    ON c.article_id = r.article_id

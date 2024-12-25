@@ -63,7 +63,7 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
         :return: List of DOIs
         """
         query_str = f"""
-            SELECT COUNT(DISTINCT s.article_id) / {self.batch_size} AS N
+            SELECT CEIL(COUNT(DISTINCT s.article_id) / {self.batch_size}::FLOAT) AS N
             FROM article_text_embedding s
                      LEFT JOIN article_research_area t
                                ON S.article_id = t.article_id
@@ -109,10 +109,6 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
         :param item: DOI for Crossref article
         :return: Record with publication metadata
         """
-
-        ix_batch = item
-        offset = ix_batch * self.batch_size
-
         query_str = f"""
             SELECT s.article_id,
                    s.article_text_embedding

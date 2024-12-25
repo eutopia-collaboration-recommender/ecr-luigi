@@ -69,12 +69,13 @@ BEGIN
            a.value ->> 'given'      AS author_given_name,
            a.value ->> 'family'     AS author_family_name,
            a.value ->> 'sequence'   AS author_sequence,
+           a.value_index            AS author_sequence_index,
            a.value ->> 'ORCID'      AS author_orcid,
            a.value -> 'affiliation' AS author_affiliation,
            c.indexed_dt,
            c.published_dt
     FROM temp_crossref_publication c
-             LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(c.article_authors) AS a ON TRUE;
+             LEFT JOIN LATERAL JSONB_ARRAY_ELEMENTS(c.article_authors) WITH ORDINALITY a(value, value_index) ON TRUE;
 
 
 /*Table: temp_crossref_publication_parsed
@@ -99,6 +100,7 @@ BEGIN
                     c.author_given_name,
                     c.author_family_name,
                     c.author_sequence,
+                    c.author_sequence_index,
                     REPLACE(c.author_orcid, 'http://orcid.org/', '') AS author_orcid,
                     a.value ->> 'name'                               AS affiliation_identifier
     FROM temp_crossref_publication_authors c
@@ -122,6 +124,7 @@ BEGIN
      author_given_name,
      author_family_name,
      author_sequence,
+     author_sequence_index,
      author_orcid,
      affiliation_identifier)
     SELECT article_doi,
@@ -141,6 +144,7 @@ BEGIN
            author_given_name,
            author_family_name,
            author_sequence,
+           author_sequence_index,
            author_orcid,
            affiliation_identifier
     FROM temp_crossref_publication_parsed;

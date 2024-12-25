@@ -119,10 +119,10 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
 
             self.logger.info(
                 f"Inserted {len(df_metadata)}, {len(df_new_author_pair)} and {len(df_cni)} records into collaboration_novelty_index_metadata, new_author_pair and collaboration_novelty_index tables, respectively")
-        except KeyError:
-            self.logger.error("No records to insert")
-        except IndexError:
-            self.logger.error("No records to insert")
+        except KeyError as e:
+            self.logger.error("No records to insert:" + str(e))
+        except IndexError as e:
+            self.logger.error("No records to insert:" + str(e))
 
     def to_dataframe(self, iterable: list) -> pd.DataFrame:
         """
