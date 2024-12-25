@@ -64,7 +64,6 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
         # Query the collaborations for the batch
         start_time = time.time()
         df_collab = query_collaboration_novelty_batch(conn=self.pg_connection,
-                                                      ix_batch=ix_batch,
                                                       batch_size=self.batch_size,
                                                       min_year=self.min_year)
         self.logger.debug(f"Queried batch {ix_batch} in {time.time() - start_time:.2f} seconds")

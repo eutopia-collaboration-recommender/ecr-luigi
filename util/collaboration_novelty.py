@@ -9,14 +9,12 @@ from util.postgres import query
 
 def query_collaboration_novelty_num_batches(conn: psycopg2.extensions.connection | sqlalchemy.engine.base.Connection,
                                             batch_size: int = 10000,
-                                            min_year: int = 2000,
-                                            max_authors: int = 40) -> int:
+                                            min_year: int = 2000) -> int:
     """
     Query the number of batches to process.
     :param conn: Connection to the Postgres database
     :param batch_size: Batch size
     :param min_year: Minimum year to consider
-    :param max_authors: Maximum number of authors to consider
     :return: Number of batches to process
     """
 
@@ -29,18 +27,10 @@ def query_collaboration_novelty_num_batches(conn: psycopg2.extensions.connection
                      WHERE EXTRACT(YEAR FROM article_publication_dt) >= {min_year}
                        AND NOT is_single_author_collaboration
                      GROUP BY article_id, article_publication_dt),
-             articles_to_load
-                 /* Get all the authors for each article and filter out articles with more than 40 authors */
-                 AS (SELECT article_id,
-                            article_publication_dt
-                     FROM collaboration_by_article ba
-                              INNER JOIN stg_mart_collaboration c USING (article_id)
-                     GROUP BY article_id, article_publication_dt
-                     HAVING COUNT(DISTINCT author_id) <= {max_authors}),
              num_articles
                  /* Get the number of articles */
                  AS (SELECT COUNT(DISTINCT article_id) AS n
-                     FROM articles_to_load)
+                     FROM collaboration_by_article)
         /* Get the number of batches */
         SELECT CEIL(n / {batch_size}) AS n_batches
         FROM num_articles
@@ -52,22 +42,15 @@ def query_collaboration_novelty_num_batches(conn: psycopg2.extensions.connection
 
 
 def query_collaboration_novelty_batch(conn: sqlalchemy.engine.base.Connection,
-                                      ix_batch: int,
                                       batch_size: int = 10000,
-                                      min_year: int = 2000,
-                                      max_authors: int = 40) -> pl.DataFrame:
+                                      min_year: int = 2000) -> pl.DataFrame:
     """
     Query collaborations that have not yet been processed.
     :param conn: Connection to the Postgres database
     :param min_year: Minimum year to consider
     :param batch_size: Batch size
-    :param ix_batch: Index of the batch
-    :param max_authors: Maximum number of authors to consider
     :return: DataFrame with the publications along with authors and institutions
     """
-    # Calculate the offset
-    offset = ix_batch * batch_size
-
     query_text = f"""
         WITH collaboration_by_article
                  /* Get articles. */
@@ -77,21 +60,19 @@ def query_collaboration_novelty_batch(conn: sqlalchemy.engine.base.Connection,
                      WHERE EXTRACT(YEAR FROM article_publication_dt) >= {min_year}
                        AND NOT is_single_author_collaboration
                      GROUP BY article_id, article_publication_dt),
-             articles_to_load
-                 /* Get all the authors for each article and filter out articles with more than 40 authors */
-                 AS (SELECT article_id,
-                            article_publication_dt
-                     FROM collaboration_by_article ba
-                              INNER JOIN stg_mart_collaboration c USING (article_id)
-                     GROUP BY article_id, article_publication_dt
-                     HAVING COUNT(DISTINCT author_id) <= {max_authors}),
+             loaded_articles
+                 /* Get all the articles that have been loaded */
+                 AS (SELECT DISTINCT article_id
+                     FROM collaboration_novelty_index),
              batch_of_articles
                  /* Get a batch of articles given a predefined N */
-                 AS (SELECT article_id,
-                            article_publication_dt
-                     FROM articles_to_load
-                     ORDER BY article_publication_dt ASC
-                     LIMIT {batch_size} OFFSET {offset})
+                 AS (SELECT c.article_id,
+                            c.article_publication_dt
+                     FROM collaboration_by_article c
+                              LEFT JOIN loaded_articles la USING (article_id)
+                     WHERE la.article_id IS NULL
+                     ORDER BY c.article_publication_dt ASC
+                     LIMIT {batch_size})
         /* Get all the collaboration data */
         SELECT ba.article_id,
                ba.article_publication_dt,
@@ -139,7 +120,8 @@ class CollaborationNoveltyGraphTuple:
         N_ii = sum(
             1 / (1 + self.G_i.get((i1, i2), 0))
             for (i1, i2) in institution_pairs)
-
+        # Coalesce N_aa to 1 if it is 0
+        N_aa = N_aa if N_aa > 0 else 1
         # Calculate collaboration novelty index
         CNI = N_aa * (1 + N_ii) * S_a
 
