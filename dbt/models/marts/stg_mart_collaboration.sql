@@ -20,6 +20,7 @@ WITH ref_stg_mart_els_collaboration AS (SELECT article_id,
 SELECT m.article_id,
        m.author_id,
        m.institution_id,
-       m.author_sequence
+       MAX(m.author_sequence) AS author_sequence
 FROM merged m
          INNER JOIN filtered_articles fa USING (article_id)
+GROUP BY m.article_id, m.author_id, m.institution_id
