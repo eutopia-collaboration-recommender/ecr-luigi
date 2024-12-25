@@ -146,8 +146,9 @@ class CollaborationNoveltyGraphTuple:
         return CNI
 
     def update_graph(self,
+                     article_id: str,
                      graph: str,
-                     items: pl.Series) -> Tuple[list, list]:
+                     items: pl.Series) -> Tuple[list, list, list]:
         """
         Update the author graph
         :param authors: DataFrame with authors
@@ -160,32 +161,50 @@ class CollaborationNoveltyGraphTuple:
         else:
             raise ValueError(f"Graph {graph} not found. Please use 'author' or 'institution'.")
 
-        new_item_collaborations, old_item_collaborations = list(), list()
+        new_item_collaborations, old_item_collaborations, item_pairs = list(), list(), list()
+
         # Iterate over all the pairs of authors
         for item_1, item_2 in itertools.combinations(items, 2):
             try:
                 # If the pair of authors is in the author collaboration history, add it to the old authors and increment the weight by 1
-                if (item_1, item_2) in G:
-                    G[item_1, item_2] += 1
+                if (item_1, item_2) in G or (item_2, item_1) in G:
+                    if (item_1, item_2) in G:
+                        G[item_1, item_2] += 1
+                    else:
+                        G[item_2, item_1] += 1
                     old_item_collaborations.append((item_1, item_2))
+                    if graph == 'author':
+                        item_pairs.append(dict(
+                            article_id=article_id,
+                            author_id=item_1,
+                            co_author_id=item_2,
+                            is_new_author_pair=False
+                        ))
+
                 # If the pair of authors is not in the author collaboration history, add it to the new authors with a weight of 1
                 else:
                     G[(item_1, item_2)] = 1
                     new_item_collaborations.append((item_1, item_2))
+
+                    if graph == 'author':
+                        item_pairs.append(dict(
+                            article_id=article_id,
+                            author_id=item_1,
+                            co_author_id=item_2,
+                            is_new_author_pair=True
+                        ))
             except KeyError:
-                # If the edge does not exist, add it to the graph. This should not happen, but it is a safety measure.
-                G[(item_1, item_2)] = 1
+                # If the edge does not exist, print a warning.
                 print(
-                    f"Edge {item_1}-{item_2} not found in the graph even though it should be there. Added it with weight 1.")
-                # Add to new authors
-                new_item_collaborations.append((item_1, item_2))
+                    f"Edge {item_1}-{item_2} not found in the graph even though it should be there.")
+
             except ValueError:
-                # If the vertices do not exist, add them to the graph. This will happen in first iterations.
-                G[(item_1, item_2)] = 1
+                # If the vertices do not exist, print a warning.
+                print(f"Vertices {item_1} or {item_2} not found in the graph.")
 
-        return old_item_collaborations, new_item_collaborations
+        return old_item_collaborations, new_item_collaborations, item_pairs
 
-    def update(self, df: pl.DataFrame) -> Tuple[dict, list[dict]]:
+    def update(self, df: pl.DataFrame) -> Tuple[dict, list[dict], list[dict]]:
         """
         Update the collaboration novelty graph tuple with the new article
         :param df: DataFrame with the article metadata
@@ -194,14 +213,17 @@ class CollaborationNoveltyGraphTuple:
         # Get authors and institutions
         authors = df['author_id'].unique()
         institutions = df['institution_id'].unique()
+        article_id = str(df['article_id'][0])
 
         # Update the institutions graph
-        new_institution_collaborations, old_institution_collaborations = self.update_graph(
+        new_institution_collaborations, old_institution_collaborations, _ = self.update_graph(
+            article_id=article_id,
             graph='institution',
             items=institutions)
 
         # Update the authors graph
-        old_author_collaborations, new_author_collaborations = self.update_graph(
+        old_author_collaborations, new_author_collaborations, new_author_pairs = self.update_graph(
+            article_id=article_id,
             graph='author',
             items=authors
         )
@@ -234,4 +256,4 @@ class CollaborationNoveltyGraphTuple:
             article_id=metadata[0]['article_id'],
             collaboration_novelty_index=CNI
         )
-        return CNI_obj, metadata
+        return CNI_obj, metadata, new_author_pairs

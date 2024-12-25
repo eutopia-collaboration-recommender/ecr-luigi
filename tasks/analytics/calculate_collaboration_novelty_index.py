@@ -30,6 +30,7 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
         self.pg_source_schema = self.config.POSTGRES.DBT_SCHEMA
         self.pg_target_table_name_cni = 'collaboration_novelty_index'
         self.pg_target_table_name_cni_metadata = 'collaboration_novelty_metadata'
+        self.pg_target_table_name_cni_author_pair = 'new_author_pair'
         # Delete before execution
         self.delete_insert = False
 
@@ -71,31 +72,36 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
         articles = df_collab['article_id'].unique()
         # Loop through the articles in the batch
         start_time = time.time()
-        CNI_rows, metadata_rows = list(), list()
+        CNI_rows, metadata_rows, new_author_pair_rows = list(), list(), list()
         for article in tqdm(articles):
             # Filter the collaborations for the article
             df_article = df_collab.filter(pl.col('article_id') == article)
             # Update the Collaboration Novelty Graph Tuple with the article metadata and calculate the CNI
-            CNI, metadata = self.GT.update(df_article)
+            CNI, metadata, new_author_pair = self.GT.update(df_article)
 
             CNI_rows.append(CNI)
             metadata_rows.extend(metadata)
+            new_author_pair_rows.extend(new_author_pair)
 
         self.logger.debug(f"Processed batch {ix_batch} in {time.time() - start_time:.2f} seconds")
 
         # Return the results
         return dict(
             cni=CNI_rows or [],
-            metadata=metadata_rows or []
+            metadata=metadata_rows or [],
+            new_author_pair=new_author_pair_rows or []
         )
 
     def checkpoint(self, iterable: list):
         use_schema(conn=self.pg_connection, schema=self.pg_target_schema)
         try:
-            cni_rows, metadata_rows = iterable[0]['cni'], iterable[0]['metadata']
+            cni_rows = iterable[0]['cni']
+            metadata_rows = iterable[0]['metadata']
+            new_author_pair_rows = iterable[0]['new_author_pair']
 
             df_cni = self.to_dataframe(cni_rows)
             df_metadata = self.to_dataframe(metadata_rows)
+            df_new_author_pair = self.to_dataframe(new_author_pair_rows)
 
             # Write the results to collaboration_novelty_index table
             write_table(conn=self.pg_connection,
@@ -107,8 +113,13 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
                         table_name=self.pg_target_table_name_cni_metadata,
                         df=df_metadata)
 
+            # Write the results to collaboration_novelty_index_metadata table
+            write_table(conn=self.pg_connection,
+                        table_name=self.pg_target_table_name_cni_author_pair,
+                        df=df_new_author_pair)
+
             self.logger.info(
-                f"Inserted {len(df_metadata)} and {len(df_cni)} records into collaboration_novelty_index_metadata and collaboration_novelty_index tables, respectively")
+                f"Inserted {len(df_metadata)}, {len(df_new_author_pair)} and {len(df_cni)} records into collaboration_novelty_index_metadata, new_author_pair and collaboration_novelty_index tables, respectively")
         except KeyError:
             self.logger.error("No records to insert")
         except IndexError:
