@@ -1,12 +1,10 @@
 WITH articles_by_type AS (SELECT article_id,
                                  EXTRACT(YEAR FROM article_publication_dt) AS article_publication_year,
                                  CASE
-                                     WHEN BOOL_OR(has_new_author_collaboration) OR
-                                          BOOL_OR(has_new_institution_collaboration) THEN 'new'
+                                     WHEN is_new_collaboration THEN 'new'
                                      ELSE 'existing' END                   AS collaboration_type
-                          FROM {{ ref('fct_collaboration') }}
-                          WHERE is_single_author_collaboration = FALSE
-                          GROUP BY article_id, article_publication_year),
+                          FROM {{ ref('fct_article') }}
+                          WHERE is_single_author_collaboration = FALSE),
      article_keyword AS (SELECT fk.article_id,
                                 fk.article_keyword,
                                 fk.research_area_code,
