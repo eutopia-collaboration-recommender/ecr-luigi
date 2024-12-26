@@ -170,3 +170,4 @@ nohup.out
 luigid.pid
 logging/*
 !logging/logging.conf
+/dbt/logs/dbt.log.1

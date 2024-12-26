@@ -1,5 +1,6 @@
-WITH ref_stg_article_keywords_flattened AS (SELECT *
-                                            FROM {{ ref('stg_article_keywords_flattened') }})
+WITH ref_int_article_keyword AS (SELECT *
+                                 FROM {{ ref('int_article_keyword') }})
 SELECT article_id,
-       article_keyword
-FROM ref_stg_article_keywords_flattened
+       article_keyword,
+       research_area_code
+FROM ref_int_article_keyword
