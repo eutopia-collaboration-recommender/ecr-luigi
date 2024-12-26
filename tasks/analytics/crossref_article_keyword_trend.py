@@ -8,7 +8,7 @@ from util.common import to_snake_case
 from util.postgres import query
 
 
-class CrossrefArticleKeywordTrend(CrossrefTask):
+class CrossrefArticleKeywordTrendTask(CrossrefTask):
     """
     Description:
     """
