@@ -63,7 +63,7 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
         :return: List of DOIs
         """
         query_str = f"""
-            SELECT CEIL(COUNT(DISTINCT s.article_id) / {self.batch_size}::FLOAT) AS N
+            SELECT CEIL(COUNT(DISTINCT s.article_id) / {self.batch_size}::FLOAT)::INT AS n
             FROM article_text_embedding s
                      LEFT JOIN article_research_area t
                                ON S.article_id = t.article_id
