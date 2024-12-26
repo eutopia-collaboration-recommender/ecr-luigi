@@ -39,14 +39,20 @@ class CrossrefArticleKeywordTrend(CrossrefTask):
         :return: List of DOIs
         """
         query_str = f"""
-            WITH keywords_to_load AS (SELECT DISTINCT keyword AS article_keyword
+            WITH keywords_to_load AS (SELECT keyword  AS article_keyword,
+                                             COUNT(1) AS keyword_count
                                       FROM article_keywords,
-                                           LATERAL UNNEST(article_keywords_arr) AS keyword)
+                                           LATERAL UNNEST(article_keywords_arr) AS keyword
+                                      GROUP BY keyword),
+                 loaded_keywords AS (SELECT article_keyword
+                                     FROM article_keyword_trend
+                                     GROUP BY article_keyword)
             SELECT a.article_keyword
             FROM keywords_to_load a
-                     LEFT JOIN article_keyword_trend k
+                     LEFT JOIN loaded_keywords k
                                ON a.article_keyword = k.article_keyword
             WHERE k.article_keyword IS NULL
+            ORDER BY a.keyword_count DESC
         """
         # Fetch the DOIs from the PostgreSQL database
         df = query(conn=self.pg_connection,
