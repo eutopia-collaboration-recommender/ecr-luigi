@@ -115,9 +115,13 @@ class GenerateArticleKeywordsTask(EutopiaTask):
             keywords = keywords.strip().lstrip('[').rstrip(']')
             keywords = keywords.replace('{', '')
             keywords = keywords.replace('}', '')
-            keywords = [keyword.strip() for keyword in keywords.split(',')]
+            keywords = list(
+                filter(lambda x: x != '',
+                       map(
+                           str.strip, keywords.split(','))
+                       )
+            )
             keywords = ', '.join(keywords)
-            keywords
             keywords = '{' + keywords + '}'
             if re.search(r'[\r\n]', keywords):
                 # Log the issue
