@@ -46,6 +46,11 @@ models:
       +materialized: table
       +tags:
         - "analytics"
+    recommender:
+      +materialized: table
+      +tags:
+        - "recommender"
+        - "analytics"
     final:
       +materialized: table
       +tags:

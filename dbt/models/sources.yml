@@ -51,3 +51,5 @@ sources:
         description: "Article keyword trend."
       - name: article_language
         description: "Article language."
+      - name: article_text_embedding
+        description: "Article text embedding."
