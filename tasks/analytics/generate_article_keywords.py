@@ -1,16 +1,11 @@
 import time
-from time import sleep
 import re
 import luigi
 import pandas as pd
-import torch.nn.functional as F
 
-from adapters import AutoAdapterModel
+from time import sleep
 from langchain_community.llms.ollama import Ollama
-from torch import Tensor
-from transformers import AutoTokenizer
 
-from util.embedding import average_pool
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 from util.postgres import query
