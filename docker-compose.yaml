@@ -45,5 +45,3 @@ volumes:
       type: none
       device: "/home/eucollab/mongo_data"
       o: bind
-
-    # sudo docker volume rm $(sudo docker volume ls  | grep -v "ecr-luigi" | awk 'NR>1 {print $2}')
