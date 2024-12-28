@@ -61,7 +61,7 @@ docker-compose up
 ```
 
 The system also requires a `.env` file and `config.yaml` file to be set up. Configuration setup instructions can be
-found in: [Configuration setup](docs/Configuration setup.md).
+found in: [Configuration setup](docs/Configuration%20setup.md).
 
 After that, you can run the Luigi tasks with the following command:
 
