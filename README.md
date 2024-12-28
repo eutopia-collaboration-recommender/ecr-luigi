@@ -17,12 +17,12 @@ relationships.
 
 The system consist of three main components:
 
-1. Luigi pipeline for data ingestion and
-   transformation: [ecr-luigi :octocat:](https://github.com/eutopia-collaboration-recommender/ecr-luigi).
-2. Analytical layer for gaining a deeper understanding of the
-   data: [ecr-analytics :octocat:](https://github.com/eutopia-collaboration-recommender/ecr-analytics).
-3. Recommender system for proposing new
-   collaborations: [ecr-recommender :octocat:](https://github.com/eutopia-collaboration-recommender/ecr-recommender).
+1. **Luigi pipeline for data ingestion and
+   transformation**: [ecr-luigi :octocat:](https://github.com/eutopia-collaboration-recommender/ecr-luigi).
+2. **Analytical layer for gaining a deeper understanding of the
+   data**: [ecr-analytics :octocat:](https://github.com/eutopia-collaboration-recommender/ecr-analytics).
+3. **Recommender system for proposing new
+   collaborations**: [ecr-recommender :octocat:](https://github.com/eutopia-collaboration-recommender/ecr-recommender).
 
 <hr/>
 
