@@ -61,7 +61,7 @@ docker-compose up
 ```
 
 The system also requires a `.env` file and `config.yaml` file to be set up. Configuration setup instructions can be
-found in: [Configuration setup](docs/Configuration%20setup.md).
+found in: [Configuration setup](docs/2_configuration_setup).
 
 After that, you can run the Luigi tasks with the following command:
 
@@ -107,7 +107,7 @@ dbt run --select tag:analytics
 
 ## In-depth documentation
 
-Check additional documentation in the `docs` directory.
+Check additional documentation in the `docs` directory starting with the [overview](docs/1_overview).
 
 ### Connecting to the production VM
 
