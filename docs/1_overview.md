@@ -106,7 +106,7 @@ In the data enrichment task, we enhance our dataset with the following improveme
 - Classify languages for each article using the `langdetect` library.
 - Classify research areas for each article using cosine similarity and k-NN classification with the top research area
   publications fetched from
-  Crossref (by relevance). Further explained in [Topic modeling](4_topic_modeling).
+  Crossref (by relevance). Further explained in [Topic modeling](4_topic_modeling.md).
 - Calculate the collaboration novelty index (CNI) for each article. Further explained in [Collaboration novelty
-  index](3_collaboration_novelty_index).
+  index.md](3_collaboration_novelty_index).
 
