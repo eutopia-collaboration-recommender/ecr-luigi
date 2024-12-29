@@ -6,8 +6,8 @@ from util.luigi.eutopia_task import EutopiaTask
 
 class EutopiaInstitutionsTask(EutopiaTask):
     """
-    Description: A Luigi task to fetch the research topics from the CERIF registry (https://www.arrs.si/sl/gradivo/sifranti/sif-cerif-cercs.asp).
-    For simplicity purposes the HTML page is downloaded manually and the research topics are extracted from the HTML within the task.
+    Description: A Luigi task transforming the EUTOPIA_INSTITUTION_REGISTRY into a table of EUTOPIA institutions and
+    saving the table to Postgres.
     """
 
     def __init__(self, *args, **kwargs):

@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from tasks.analytics.embed_articles import EmbedArticlesTask
+
 from util.embedding import cosine_similarity
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
@@ -12,7 +14,7 @@ from util.postgres import query
 
 class ClassifyArticleResearchAreaTask(EutopiaTask):
     """
-    Description: A Luigi task to generate article keywords using the Ollama model
+    Description: A Luigi task to classify the research area of articles in the PostgreSQL database.
     """
 
     def __init__(self, *args, **kwargs):
@@ -39,6 +41,11 @@ class ClassifyArticleResearchAreaTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
+
+    def requires(self):
+        return [
+            EmbedArticlesTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        ]
 
     def query_top_n_research_area_embeddings(self) -> pd.DataFrame:
         """

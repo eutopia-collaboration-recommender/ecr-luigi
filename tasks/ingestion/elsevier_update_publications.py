@@ -3,15 +3,16 @@ import time
 import luigi
 import pandas as pd
 
+from datetime import datetime
+
+from util.luigi.elsevier_task import ElsevierTask
+from util.common import to_snake_case
 from util.elsevier.parse import (
     parse_authors,
     parse_keywords,
     parse_references,
     safe_get
 )
-from util.luigi.elsevier_task import ElsevierTask
-from util.common import to_snake_case
-from datetime import datetime
 
 
 class ElsevierUpdatePublicationsTask(ElsevierTask):
@@ -27,15 +28,13 @@ class ElsevierUpdatePublicationsTask(ElsevierTask):
 
     updated_date_start: str = luigi.OptionalParameter(
         description='Search start date',
-        default='2000-01-01'
-        # default = time.strftime("%Y-%m-%d",
-        #                     time.gmtime(time.time() - 7 * 24 * 60 * 60))
+        default = time.strftime("%Y-%m-%d",
+                            time.gmtime(time.time() - 7 * 24 * 60 * 60))
     )
 
     updated_date_end: str = luigi.OptionalParameter(
         description='Search end date',
-        default='2024-12-31'
-        # default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
+        default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
 
     def query_records_to_update(self) -> list:

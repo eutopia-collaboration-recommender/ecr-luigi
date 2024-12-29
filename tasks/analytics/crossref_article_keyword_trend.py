@@ -2,6 +2,8 @@ import time
 import luigi
 import pandas as pd
 
+from tasks.analytics.generate_article_keywords import GenerateArticleKeywordsTask
+
 from util.crossref.works import query_keyword_trend
 from util.luigi.crossref_task import CrossrefTask
 from util.common import to_snake_case
@@ -10,7 +12,7 @@ from util.postgres import query
 
 class CrossrefArticleKeywordTrendTask(CrossrefTask):
     """
-    Description:
+    Description: A Luigi task to calculate the keyword trend for keywords generated from articles in the PostgreSQL database.
     """
 
     def __init__(self, *args, **kwargs):
@@ -32,6 +34,12 @@ class CrossrefArticleKeywordTrendTask(CrossrefTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
+
+    def requires(self):
+        return [
+            GenerateArticleKeywordsTask(updated_date_start=self.updated_date_start,
+                                        updated_date_end=self.updated_date_end)
+        ]
 
     def query_records_to_update(self) -> list:
         """

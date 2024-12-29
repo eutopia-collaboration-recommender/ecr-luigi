@@ -2,23 +2,23 @@ import json
 import time
 import luigi
 
-from tasks.dbt.dbt_data_ingestion import DbtDataIngestionTask
+from tasks.dbt.dbt_data_enrichment import DbtDataEnrichmentTask
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 
 
-class DataIngestionTask(EutopiaTask):
+class DataEnrichmentTask(EutopiaTask):
     """
-    Description: Main task to update all the data sources for the EUTOPIA project. The task requires the start and end date:
-    1. Elsevier publications.
-    2. Elsevier affiliations.
-    3. ORCID members that changed in the given time period (for all EUTOPIA institutions).
-    4. ORCID member works for all EUTOPIA institutions.
-    5. ORCID member metadata (person JSON) for all EUTOPIA institutions.
-    6. ORCID member employment data for all EUTOPIA institutions.
-    7. Crossref publications for all modified ORCID records in the given time period.
-    8. Parsing JSON data from Elsevier, Crossref, and ORCID for the given time period using stored procedures in PostgreSQL.
-    9. Running dbt to update the data ingestion mart.
+    Description: Main task to enrich the data generated in the data ingestion task. The task requires the start and end
+    date and runs the following tasks:
+    1. Calculate the collaboration novelty index.
+    2. Classify article language.
+    3. Embed top N articles for research ares (only done once).
+    4. Embed articles using specter2.
+    5. Classify article research areas.
+    6. Generate article keywords using Ollama.
+    7. Fetch article keyword trends from Crossref.
+    8. Running dbt to update the data enrichment mart.
     """
 
     def __init__(self, *args, **kwargs):
@@ -36,7 +36,7 @@ class DataIngestionTask(EutopiaTask):
     def requires(self):
         # Return requirements
         return [
-            DbtDataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+            DbtDataEnrichmentTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
         ]
 
     def run(self):
@@ -53,9 +53,9 @@ class DataIngestionTask(EutopiaTask):
         """
         updated_date_start = to_snake_case(self.updated_date_start)
         updated_date_end = to_snake_case(self.updated_date_end)
-        target_name = f"data_ingestion_{updated_date_start}_{updated_date_end}"
+        target_name = f"main_update_{updated_date_start}_{updated_date_end}"
         return luigi.LocalTarget(f"out/{target_name}.json")
 
 
 if __name__ == '__main__':
-    luigi.build([DataIngestionTask()], local_scheduler=True)
+    luigi.build([DbtDataEnrichmentTask()], local_scheduler=True)

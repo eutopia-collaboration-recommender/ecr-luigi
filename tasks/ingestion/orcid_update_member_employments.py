@@ -2,9 +2,10 @@ import time
 import luigi
 import pandas as pd
 
+from tasks.ingestion.orcid_modified_members import OrcidModifiedMembersTask
+
 from util.orcid.member import get_orcid_member_employments
 from util.luigi.orcid_task import OrcidTask
-from tasks.ingestion.orcid_modified_members import OrcidModifiedMembersTask
 from util.common import to_snake_case
 from util.postgres import query
 

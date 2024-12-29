@@ -2,23 +2,15 @@ import json
 import time
 import luigi
 
-from tasks.dbt.dbt_data_ingestion import DbtDataIngestionTask
+from dbt.cli.main import dbtRunner, dbtRunnerResult
+
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 
 
-class DataIngestionTask(EutopiaTask):
+class DbtDataEnrichmentTask(EutopiaTask):
     """
-    Description: Main task to update all the data sources for the EUTOPIA project. The task requires the start and end date:
-    1. Elsevier publications.
-    2. Elsevier affiliations.
-    3. ORCID members that changed in the given time period (for all EUTOPIA institutions).
-    4. ORCID member works for all EUTOPIA institutions.
-    5. ORCID member metadata (person JSON) for all EUTOPIA institutions.
-    6. ORCID member employment data for all EUTOPIA institutions.
-    7. Crossref publications for all modified ORCID records in the given time period.
-    8. Parsing JSON data from Elsevier, Crossref, and ORCID for the given time period using stored procedures in PostgreSQL.
-    9. Running dbt to update the data ingestion mart.
+    Description: task running dbt to update the data enrichment mart including analytics, intermediate, final and recommender models.
     """
 
     def __init__(self, *args, **kwargs):
@@ -33,15 +25,16 @@ class DataIngestionTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time())))
 
-    def requires(self):
-        # Return requirements
-        return [
-            DbtDataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
-        ]
-
     def run(self):
         self.logger.info(f"Running {self.__class__.__name__}.")
+        # Execute dbt run (tag: data_enrichment)
+        dbt_runner = dbtRunner()
+        cli_args = ['run', '--project-dir', './dbt', '--select', 'tag:data_enrichment']
+        res: dbtRunnerResult = dbt_runner.invoke(cli_args)
 
+        # inspect the results
+        for r in res.result:
+            self.logger.info(f"{r.node.name}: {r.status}")
         # Save number of rows written local target
         with self.output().open('w') as f:
             result = json.dumps({'task-finished': True})
@@ -53,9 +46,9 @@ class DataIngestionTask(EutopiaTask):
         """
         updated_date_start = to_snake_case(self.updated_date_start)
         updated_date_end = to_snake_case(self.updated_date_end)
-        target_name = f"data_ingestion_{updated_date_start}_{updated_date_end}"
+        target_name = f"dbt_data_enrichment_{updated_date_start}_{updated_date_end}"
         return luigi.LocalTarget(f"out/{target_name}.json")
 
 
 if __name__ == '__main__':
-    luigi.build([DataIngestionTask()], local_scheduler=True)
+    luigi.build([DbtDataEnrichmentTask()], local_scheduler=True)

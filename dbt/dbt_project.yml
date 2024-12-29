@@ -41,18 +41,19 @@ models:
       +materialized: table
       +tags:
         - "intermediate"
-        - "analytics"
+        - "data_enrichment"
     analytics:
       +materialized: table
       +tags:
         - "analytics"
+        - "data_enrichment"
     recommender:
       +materialized: table
       +tags:
         - "recommender"
-        - "analytics"
+        - "data_enrichment"
     final:
       +materialized: table
       +tags:
         - "final"
-        - "analytics"
+        - "data_enrichment"

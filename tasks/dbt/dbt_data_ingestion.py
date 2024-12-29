@@ -3,20 +3,15 @@ import time
 import luigi
 
 from dbt.cli.main import dbtRunner, dbtRunnerResult
-from tasks.ingestion.crossref_top_n_research_area_publications import CrossrefTopNResearchAreaPublicationsTask
-from tasks.ingestion.crossref_update_publications import CrossrefUpdatePublicationsTask
-from tasks.ingestion.elsevier_update_publications import ElsevierUpdatePublicationsTask
-from tasks.ingestion.eutopia_institutions import EutopiaInstitutionsTask
-from tasks.ingestion.orcid_update_member_person import OrcidUpdateMemberPersonTask
+from tasks.ingestion.parse_json import ParseJSONTask
 
-from util.eutopia import EUTOPIA_INSTITUTION_REGISTRY
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 
 
 class DbtDataIngestionTask(EutopiaTask):
     """
-    Description:
+    Description: task running dbt to update the data ingestion mart including staging and marts models.
     """
 
     def __init__(self, *args, **kwargs):
@@ -31,12 +26,12 @@ class DbtDataIngestionTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time())))
 
+    def requires(self):
+        return [
+            ParseJSONTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        ]
 
     def run(self):
-        """
-        Run the main task. Update ORCID works JSON for each modified ORCID record in given timeframe.
-        Write the results to the PostgreSQL database and save the number of rows written to a local target file.
-        """
         self.logger.info(f"Running {self.__class__.__name__}.")
         # Execute dbt run (tag: data_ingestion)
         dbt_runner = dbtRunner()

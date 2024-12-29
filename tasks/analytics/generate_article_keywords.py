@@ -6,6 +6,8 @@ import pandas as pd
 from time import sleep
 from langchain_community.llms.ollama import Ollama
 
+from tasks.data_ingestion import DataIngestionTask
+
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 from util.postgres import query
@@ -56,6 +58,11 @@ class GenerateArticleKeywordsTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
+
+    def requires(self):
+        return [
+            DataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        ]
 
     def query_records_to_update(self) -> list:
         """

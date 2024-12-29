@@ -1,5 +1,4 @@
 import time
-
 import luigi
 import pandas as pd
 import torch.nn.functional as F
@@ -7,7 +6,8 @@ import torch.nn.functional as F
 from torch import Tensor
 from transformers import AutoTokenizer
 from adapters import AutoAdapterModel
-from operator import itemgetter
+
+from tasks.ingestion.crossref_top_n_research_area_publications import CrossrefTopNResearchAreaPublicationsTask
 
 from util.embedding import average_pool
 from util.luigi.eutopia_task import EutopiaTask
@@ -16,7 +16,7 @@ from util.postgres import query
 
 class EmbedTopNResearchAreaArticlesTask(EutopiaTask):
     """
-    Description:
+    Description: A Luigi task to embed the text of top N research area articles in the PostgreSQL database using a transformer model.
     """
 
     def __init__(self, *args, **kwargs):
@@ -33,6 +33,11 @@ class EmbedTopNResearchAreaArticlesTask(EutopiaTask):
 
         # Delete before execution
         self.delete_insert = False
+
+    def requires(self):
+        return [
+            CrossrefTopNResearchAreaPublicationsTask()
+        ]
 
     def embed_batch(self, batch: list) -> Tensor:
         """

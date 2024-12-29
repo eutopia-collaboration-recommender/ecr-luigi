@@ -1,5 +1,4 @@
 import time
-
 import luigi
 import pandas as pd
 import torch.nn.functional as F
@@ -7,6 +6,8 @@ import torch.nn.functional as F
 from adapters import AutoAdapterModel
 from torch import Tensor
 from transformers import AutoTokenizer
+
+from tasks.data_ingestion import DataIngestionTask
 
 from util.embedding import average_pool
 from util.luigi.eutopia_task import EutopiaTask
@@ -44,6 +45,11 @@ class EmbedArticlesTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
+
+    def requires(self):
+        return [
+            DataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        ]
 
     def embed_batch(self, batch: list) -> Tensor:
         """

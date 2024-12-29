@@ -3,6 +3,9 @@ import luigi
 import pandas as pd
 
 from langdetect import detect, LangDetectException
+
+from tasks.data_ingestion import DataIngestionTask
+
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
 from util.postgres import query
@@ -25,7 +28,7 @@ def classify_article_language(article_description: str) -> str:
 
 class ClassifyArticleLanguageTask(EutopiaTask):
     """
-    Description: A Luigi task to generate article keywords using the Ollama model
+    Description: A Luigi task to classify the language of articles in the PostgreSQL database.
     """
 
     def __init__(self, *args, **kwargs):
@@ -47,6 +50,11 @@ class ClassifyArticleLanguageTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
+
+    def requires(self):
+        return [
+            DataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        ]
 
     def query_records_to_update(self) -> list:
         """

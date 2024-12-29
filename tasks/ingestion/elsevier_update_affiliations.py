@@ -1,25 +1,39 @@
 import json
 import time
 import luigi
-import pandas as pd
 
+from datetime import datetime
+
+from util.common import to_snake_case
+from util.luigi.elsevier_task import ElsevierTask
 from util.elsevier.parse import (
     parse_affiliations,
     safe_get
 )
-from util.luigi.elsevier_task import ElsevierTask
 
 
 class ElsevierUpdateAffiliationsTask(ElsevierTask):
     """
     Description: Task to update the Elsevier affiliations in the PostgreSQL database. The task fetches all the
-    Elsevier affiliations from MongoDB, processes them and writes the results to the PostgreSQL database.
+    Elsevier affiliations from MongoDB, processes them and writes the results to the PostgreSQL database. It filters
+    the affiliations based on the last modified date.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pg_target_table_name = 'elsevier_publication_affiliation'
         self.mongo_collection_name = 'pub_aff'
+
+    updated_date_start: str = luigi.OptionalParameter(
+        description='Search start date',
+        default=time.strftime("%Y-%m-%d",
+                              time.gmtime(time.time() - 7 * 24 * 60 * 60))
+    )
+
+    updated_date_end: str = luigi.OptionalParameter(
+        description='Search end date',
+        default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
+    )
 
     def query_records_to_update(self) -> list:
         """
@@ -31,8 +45,14 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
         # Limit to collection
         collection = self.mongo_db[self.mongo_collection_name]
 
+        filter_query = {
+            "last_modified": {
+                "$gte": datetime.strptime(self.updated_date_start, "%Y-%m-%d"),
+                "$lte": datetime.strptime(self.updated_date_end, "%Y-%m-%d")
+            }
+        }
         # Query all documents from each collection in batches
-        cursor = collection.find().batch_size(self.mongo_batch_size)  # Set batch size for the cursor
+        cursor = collection.find(filter_query).batch_size(self.mongo_batch_size)  # Set batch size for the cursor
         return cursor
 
     def process_item(self, item: dict) -> list:
@@ -67,7 +87,9 @@ class ElsevierUpdateAffiliationsTask(ElsevierTask):
         """
         Output target for the task used to check if the task has been completed.
         """
-        target_name = f"elsevier_affiliations"
+        updated_date_start = to_snake_case(self.updated_date_start)
+        updated_date_end = to_snake_case(self.updated_date_end)
+        target_name = f"elsevier_affiliations_{updated_date_start}_{updated_date_end}"
         return luigi.LocalTarget(f"out/{target_name}.json")
 
 

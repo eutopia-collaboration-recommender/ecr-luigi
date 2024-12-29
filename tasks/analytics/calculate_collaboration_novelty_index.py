@@ -5,20 +5,21 @@ import pandas as pd
 import polars as pl
 from tqdm import tqdm
 
+from tasks.data_ingestion import DataIngestionTask
+
 from util.luigi.eutopia_task import EutopiaTask
 from util.common import to_snake_case
+from util.postgres import use_schema, write_table
 from util.collaboration_novelty import (
     query_collaboration_novelty_batch,
     query_collaboration_novelty_num_batches,
     CollaborationNoveltyGraphTuple
 )
 
-from util.postgres import use_schema, write_table
-
 
 class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
     """
-    Description: A Luigi task to embed the text of articles in the PostgreSQL database using a transformer model.
+    Description: A Luigi task to calculate the Collaboration Novelty Index for articles in the PostgreSQL database.
     """
 
     def __init__(self, *args, **kwargs):
@@ -50,6 +51,11 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
         description='Search end date',
         default=time.strftime("%Y-%m-%d", time.gmtime(time.time()))
     )
+
+    def requires(self):
+        return [
+            DataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+        ]
 
     def query_records_to_update(self) -> list:
         N = query_collaboration_novelty_num_batches(conn=self.pg_connection,

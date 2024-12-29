@@ -9,9 +9,7 @@ from util.postgres import query
 
 class CrossrefTopNResearchAreaPublicationsTask(CrossrefTask):
     """
-    Description: A Luigi task to fetch the publication metadata from Crossref for the DOIs in the PostgreSQL database
-    from ORCID member works. By default, the task fetches the publication metadata for the DOIs that have been updated
-    in the last 7 days. The task requires the OrcidUpdateMemberWorksTask to be completed before it can be run.
+    Description: A Luigi task to fetch the publication metadata from Crossref for the top N research area articles by relevance.
     """
 
     def __init__(self, *args, **kwargs):
