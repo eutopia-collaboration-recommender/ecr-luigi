@@ -21,7 +21,7 @@ WITH articles_by_type AS (SELECT article_id,
                                FROM {{ ref('fct_article_keyword_trend') }}),
      final AS (SELECT a.article_id,
                       a.collaboration_type,
-                      SUM(CASE WHEN b.is_trend_positive THEN 1 ELSE 0 END) AS keyword_popularity,
+                      COUNT(DISTINCT CASE WHEN b.is_trend_positive THEN a.article_keyword END) AS keyword_popularity,
                       SUM(popularity_index)                                AS keyword_popularity_index
                FROM article_keyword a
                         INNER JOIN article_keyword_trend b
