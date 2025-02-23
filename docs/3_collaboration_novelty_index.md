@@ -94,7 +94,7 @@ institution is added. A real life example of this would be a PhD student joining
    
     $S_a = 1 / 4 = 0.25$
     
-    $NCI = 1.625$
+    $NCI = 1.63$
 
 4. $t_4$: At a later point, author $E$ starts collaborating with author $F$, this is a new collaboration of great importance
 because an entirely new collaboration is formed between two institutions, even though the institutions have already
@@ -106,7 +106,7 @@ collaborated.
 
     $S_a = \frac{1}{1 + 0} = 1$
 
-    $NCI = 1.25$
+    $NCI = 1.5$
 
 5. $t_5$: Finally, if author $G$ joins the group of authors $B$, $C$, $A$ and $D$, it is more important because we create a new
 institutional collaboration, even though the majority of authors have already collaborated.
@@ -117,7 +117,7 @@ institutional collaboration, even though the majority of authors have already co
 
     $S_a = \frac{1}{1 + 4} = 0.2$
 
-    $NCI = 1.25$
+    $NCI = 4.17$
 
 ![Collaboration Example.png](assets/cni.png)
 
