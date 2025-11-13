@@ -54,7 +54,7 @@ class CalculateCollaborationNoveltyIndexTask(EutopiaTask):
 
     def requires(self):
         return [
-            DataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
+            # DataIngestionTask(updated_date_start=self.updated_date_start, updated_date_end=self.updated_date_end)
         ]
 
     def query_records_to_update(self) -> list:

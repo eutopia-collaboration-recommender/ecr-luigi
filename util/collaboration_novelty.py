@@ -88,6 +88,7 @@ def query_collaboration_novelty_batch(conn: sqlalchemy.engine.base.Connection,
 class CollaborationNoveltyGraphTuple:
     def __init__(self):
         self.G_i = dict()
+        self.G_i_authors = dict()
         self.G_a = dict()
 
     def calculate_CNI(self,
@@ -130,7 +131,8 @@ class CollaborationNoveltyGraphTuple:
     def update_graph(self,
                      article_id: str,
                      graph: str,
-                     items: pl.Series) -> Tuple[list, list, list]:
+                     items: pl.Series,
+                     authors: set) -> Tuple[list, list, list]:
         """
         Update the author graph
         :param authors: DataFrame with authors
@@ -145,44 +147,58 @@ class CollaborationNoveltyGraphTuple:
 
         new_item_collaborations, old_item_collaborations, item_pairs = list(), list(), list()
 
-        # Iterate over all the pairs of authors
+        if len(authors) < 2:
+            return new_item_collaborations, old_item_collaborations, item_pairs
+
+        # Iterate over all the pairs of items
         for item_1, item_2 in itertools.combinations(items, 2):
+            g_item_1 = min(item_1, item_2)
+            g_item_2 = max(item_1, item_2)
             try:
-                # If the pair of authors is in the author collaboration history, add it to the old authors and increment the weight by 1
-                if (item_1, item_2) in G or (item_2, item_1) in G:
-                    if (item_1, item_2) in G:
-                        G[item_1, item_2] += 1
-                    else:
-                        G[item_2, item_1] += 1
-                    old_item_collaborations.append((item_1, item_2))
+                # If the pair of items is in the item collaboration history, add it to the old items and increment the weight by 1
+                # For institutions also check whether institutions have already collaborated through these authors
+                if (g_item_1, g_item_2) in G and (graph == 'author' or len(authors.intersection(self.G_i_authors[(g_item_1, g_item_2)])) > 0):
+
+                    G[(g_item_1, g_item_2)] += 1
+                    old_item_collaborations.append((g_item_1, g_item_2))
                     if graph == 'author':
                         item_pairs.append(dict(
                             article_id=article_id,
-                            author_id=item_1,
-                            co_author_id=item_2,
+                            author_id=g_item_1,
+                            co_author_id=g_item_2,
                             is_new_author_pair=False
                         ))
 
+                    if graph == 'institution':
+                        self.G_i_authors[(g_item_1, g_item_2)].update(authors)
+
                 # If the pair of authors is not in the author collaboration history, add it to the new authors with a weight of 1
                 else:
-                    G[(item_1, item_2)] = 1
-                    new_item_collaborations.append((item_1, item_2))
-
+                    if graph == 'institution':
+                        if (g_item_1, g_item_2) in G:
+                            self.G_i_authors[(g_item_1, g_item_2)].update(authors)
+                        else:
+                            self.G_i_authors[(g_item_1, g_item_2)] = authors
                     if graph == 'author':
                         item_pairs.append(dict(
                             article_id=article_id,
-                            author_id=item_1,
-                            co_author_id=item_2,
+                            author_id=g_item_1,
+                            co_author_id=g_item_2,
                             is_new_author_pair=True
                         ))
+
+                    G[(g_item_1, g_item_2)] = 1 if not (g_item_1, g_item_2) in G else (G[(g_item_1, g_item_2)] + 1)
+                    new_item_collaborations.append((g_item_1, g_item_2))
+
+
             except KeyError:
                 # If the edge does not exist, print a warning.
                 print(
-                    f"Edge {item_1}-{item_2} not found in the graph even though it should be there.")
+                    f"Edge {g_item_1}-{g_item_2} not found in the graph even though it should be there.")
 
             except ValueError:
                 # If the vertices do not exist, print a warning.
-                print(f"Vertices {item_1} or {item_2} not found in the graph.")
+                print(f"Vertices {g_item_1} or {g_item_2} not found in the graph.")
 
         return old_item_collaborations, new_item_collaborations, item_pairs
 
@@ -198,16 +214,19 @@ class CollaborationNoveltyGraphTuple:
         article_id = str(df['article_id'][0])
 
         # Update the institutions graph
-        new_institution_collaborations, old_institution_collaborations, _ = self.update_graph(
+        old_institution_collaborations, new_institution_collaborations, _ = self.update_graph(
             article_id=article_id,
             graph='institution',
-            items=institutions)
+            items=institutions,
+            authors=set(authors)
+        )
 
         # Update the authors graph
         old_author_collaborations, new_author_collaborations, new_author_pairs = self.update_graph(
             article_id=article_id,
             graph='author',
-            items=authors
+            items=authors,
+            authors=set(authors)
         )
 
         # Calculate the Collaboration Novelty Index

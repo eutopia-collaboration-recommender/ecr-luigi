@@ -13,7 +13,7 @@ WITH top_k_keywords AS (SELECT article_keyword
                                   INNER JOIN {{ ref('g_included_article') }} a
                                              ON m.article_id = a.article_id)
 -- Filter article keywords with top 200 keywords
-   , top_k  _article_keywords AS (SELECT m.*
+   , top_k_article_keywords AS (SELECT m.*
                                 FROM article_keyword m
                                          INNER JOIN top_k_keywords k
                                                     ON m.article_keyword = k.article_keyword)
